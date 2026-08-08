@@ -49,7 +49,12 @@ class Paralog:
 		if hog_tsv:
 			hog.from_tsv(hog_tsv)
 		else:
-			hog.pipe(write_tsv=False)
+			write_tsv = bool(self.kargs.get('write_hog'))
+			if write_tsv:
+				hog.outtsv = self.prefix + '.HOGs.tsv'
+			hog.pipe(write_tsv=write_tsv)
+			if write_tsv:
+				logger.info('HOGs written to {}'.format(hog.outtsv))
 		logger.info('Loaded {} HOGs'.format(len(hog.all_hogs)))
 
 		branch_pairs, count = self._write_and_group(hog, fpath)

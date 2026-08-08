@@ -133,6 +133,9 @@ def args_paralog(parser):
 	g_hog = parser.add_argument_group('HOG rebuilding')
 	_add_shared_hog_args(parser, og_required=False, s_required=False,
 						 t_required=False, group=g_hog)
+	g_hog.add_argument('--write-hog', action='store_true', default=False,
+					   dest='write_hog',
+					   help='Write HOGs.tsv while rebuilding (for later --hog reuse)')
 
 	g_in = parser.add_argument_group('Prebuilt inputs (skip rebuilding)')
 	g_in.add_argument('--hog', type=str, default=None,

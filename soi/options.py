@@ -102,13 +102,13 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 							 'enable if the input paralogs is not terminal inparalogs')
 	target.add_argument('--min-child-species', type=int, default=2,
 						dest='min_child_species', metavar='INT',
-						help=argparse.SUPPRESS)  # default 2, hidden
+						help=argparse.SUPPRESS)  # 'Minimum number of species in a child HOG for it to be retained [default=%(default)s]'
 	target.add_argument('--cross-speciation', action='store_true', default=True,
 						dest='cross_speciation',
-						help=argparse.SUPPRESS)  # default True, hidden
+						help=argparse.SUPPRESS)  # 'Merge child HOGs whose genes do not span all child branches of this node'
 	target.add_argument('--drop-no-cross', action='store_true', default=False,
 						dest='drop_no_cross',
-						help=argparse.SUPPRESS)  # hidden, fixed default False
+						help=argparse.SUPPRESS)  # 'Drop (instead of merge) HOGs whose genes do not span all child branches'
 
 
 def args_hog(parser):
@@ -136,7 +136,7 @@ def args_paralog(parser):
 						 t_required=False, group=g_hog)
 	g_hog.add_argument('--write-hog', action='store_true', default=True,
 					   dest='write_hog',
-					   help=argparse.SUPPRESS)  # default True, hidden
+					   help=argparse.SUPPRESS)  # 'Write HOGs.tsv while rebuilding (for later --hog reuse)'
 
 	g_in = parser.add_argument_group('Prebuilt inputs (skip rebuilding)')
 	g_in.add_argument('--hog', type=str, default=None,
@@ -192,7 +192,7 @@ def args_paralog(parser):
 							'tree-ordered columns')
 	g_out.add_argument('--cluster', action='store_true', default=False,
 					   dest='heatmap_cluster',
-					   help=argparse.SUPPRESS)
+					   help=argparse.SUPPRESS)  # 'Order heatmap rows by hierarchical clustering instead of PI-vector sorting'
 	g_out.add_argument('--scale', type=str, default=None,
 					   choices=['linear', 'log', 'log2', 'log10', 'sqrt'],
 					   dest='heatmap_scale',

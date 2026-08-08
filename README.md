@@ -394,7 +394,10 @@ and classifies synteny blocks by branch-specific paralog content (Paralogue Inde
 
 Input modes (choose one):
 - **rebuild** (default): build HOGs from `-og` + `-s` + `-t`
-- **`--hog HOGs.tsv`**: reuse a previously written HOGs.tsv, skip HOG rebuilding
+- **`--hog HOGs.tsv`**: reuse a previously written HOGs.tsv, skip HOG rebuilding.
+  **Note:** HOGs.tsv stores node IDs numbered from the species tree — use the
+  **same `-t` tree file** as when the HOGs were built, otherwise leaf-level
+  paralog assignment will be empty.
 - **`--paralog pairs.tsv`**: reuse a `--no-index` paralog.tsv (first 3 columns),
   skip HOG rebuilding and paralog-pair generation
 

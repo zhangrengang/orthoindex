@@ -99,7 +99,7 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 	target.add_argument('-inparalog', action='store_true', default=False,
 						dest='paralog',
 						help='Include paralogs in `-s` input. Do NOT '
-							 'enable if the input inparalogs is not terminal inparalogs')
+							 'enable if the input paralogs is not terminal inparalogs')
 	target.add_argument('--min-child-species', type=int, default=1,
 						dest='min_child_species', metavar='INT',
 						help='Minimum number of species in a child HOG for it to be retained [default=%(default)s]')
@@ -141,7 +141,8 @@ def args_paralog(parser):
 	g_in = parser.add_argument_group('Prebuilt inputs (skip rebuilding)')
 	g_in.add_argument('--hog', type=str, default=None,
 					  dest='hog_tsv', metavar='FILE',
-					  help='Load HOGs from existing HOGs.tsv (skip rebuilding)')
+					  help='Load HOGs from existing HOGs.tsv (skip rebuilding); '
+						   'use the same species tree as when it was built')
 	g_in.add_argument('--paralog', type=str, default=None,
 					  dest='inparalog', metavar='FILE',
 					  help='Load paralog pairs from existing paralog.tsv '

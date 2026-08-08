@@ -192,7 +192,8 @@ def args_paralog(parser):
 	g_out.add_argument('--scale', type=str, default=None,
 					   choices=['linear', 'log', 'log2', 'log10', 'sqrt'],
 					   dest='heatmap_scale',
-					   help=argparse.SUPPRESS)
+					   help='Scale heatmap row height by block gene count '
+							'[choices: %(choices)s]')
 
 def func_paralog(**kargs):
 	from .paralog import xmain as paralog_main

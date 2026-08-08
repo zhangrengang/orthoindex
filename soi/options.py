@@ -100,12 +100,12 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 						dest='paralog',
 						help='Include paralogs in `-s` input. Do NOT '
 							 'enable if the input paralogs is not terminal inparalogs')
-	target.add_argument('--min-child-species', type=int, default=1,
+	target.add_argument('--min-child-species', type=int, default=2,
 						dest='min_child_species', metavar='INT',
-						help='Minimum number of species in a child HOG for it to be retained [default=%(default)s]')
-	target.add_argument('--cross-speciation', action='store_true', default=False,
+						help=argparse.SUPPRESS)  # default 2, hidden
+	target.add_argument('--cross-speciation', action='store_true', default=True,
 						dest='cross_speciation',
-						help='Merge child HOGs whose genes do not span all child branches of this node')
+						help=argparse.SUPPRESS)  # default True, hidden
 	target.add_argument('--drop-no-cross', action='store_true', default=False,
 						dest='drop_no_cross',
 						help='Drop (instead of merge) HOGs whose genes do not span all child branches')
@@ -134,9 +134,9 @@ def args_paralog(parser):
 	g_hog = parser.add_argument_group('HOG rebuilding')
 	_add_shared_hog_args(parser, og_required=False, s_required=False,
 						 t_required=False, group=g_hog)
-	g_hog.add_argument('--write-hog', action='store_true', default=False,
+	g_hog.add_argument('--write-hog', action='store_true', default=True,
 					   dest='write_hog',
-					   help='Write HOGs.tsv while rebuilding (for later --hog reuse)')
+					   help=argparse.SUPPRESS)  # default True, hidden
 
 	g_in = parser.add_argument_group('Prebuilt inputs (skip rebuilding)')
 	g_in.add_argument('--hog', type=str, default=None,

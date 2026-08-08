@@ -451,11 +451,6 @@ Index mode (default): for each self-synteny block, compute BPI = (paralog pairs 
 per branch and assign to the branch with the highest BPI.  Blocks whose best-branch BPI
 falls below --pi-cutoff (0.05) fall back to the root node.
 
-Filter options (shared with `hog` and `paralog`):
-- `-inparalog` — use inparalogs from the terminal branches.  Do NOT enable if the input is not inparalogs.
-- `--min-child-species N` (default: 2, fixed) — skip child HOGs with fewer than N species.
-- `--cross-speciation` (default: on, fixed) — do not split child HOGs when the genes at a node do not span all child branches.
-
 #### `prune` ####
 The subcommand `prune` purifies orthogroups (OGs) to single-copy per species,
 guided by Hierarchical Orthologous Group (HOG) information.

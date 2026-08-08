@@ -173,6 +173,20 @@ class HOG:
 							phog["children"].append(hog["hog_id"])
 							break
 
+			# drop leaf HOGs with no parent (genes absent from parent-node
+			# HOGs, e.g. filtered out by min_child_species at the parent level)
+			n_dropped = 0
+			for node_id, hogs in list(node_to_hogs.items()):
+				if node_id.startswith('N') or node_id in ('Root', 'None'):
+					continue
+				for hog in list(hogs):
+					if not hog["parent"]:
+						del self.all_hogs[hog["hog_id"]]
+						node_to_hogs[node_id].remove(hog)
+						n_dropped += 1
+			if n_dropped:
+				logger.debug(f"Dropped {n_dropped} orphan leaf HOGs without parent "
+							 f"(SOG {og_id})")
 		logger.info(f"Processed {len(self.all_hogs)} HOGs")
 		logger.info("All HOGs with hierarchy built successfully!")
 		

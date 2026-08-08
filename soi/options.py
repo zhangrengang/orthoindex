@@ -95,8 +95,7 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 						help='Ortholog/Collinearity files')
 	target.add_argument('-t', '-sptree', required=t_required, type=str,
 						dest='sptreefile', metavar='FILE',
-						help='Species tree file (Newick); needed for tree-ordered '
-							 'heatmap columns')
+						help='Species tree file (Newick)')
 	target.add_argument('-inparalog', action='store_true', default=False,
 						dest='paralog',
 						help='Include paralogs in `-s` input. Do NOT '
@@ -187,7 +186,8 @@ def args_paralog(parser):
 	g_out.add_argument('--heatmap', action='store_true', default=False,
 					   dest='heatmap',
 					   help='Output block x branch PI heatmap '
-							'(<prefix>.heatmap.tsv/.pdf/.png)')
+							'(<prefix>.heatmap.tsv/.pdf/.png); -t gives '
+							'tree-ordered columns')
 	g_out.add_argument('--cluster', action='store_true', default=False,
 					   dest='heatmap_cluster',
 					   help=argparse.SUPPRESS)

@@ -226,7 +226,8 @@ class ParalogIndexer:
 			# store data immediately — rc is a shared mutable object
 			assigned[best_branch].append(
 				(rc.block, rc.species1, rc.N, best_nparalog, best_pi))
-			self._pi_rows.append((rc.id, rc.N, best_branch, tuple(pi_vector)))
+			self._pi_rows.append((rc.id, rc.species1, rc.N,
+								  best_branch, tuple(pi_vector)))
 		self._pi_branches = branches
 		logger.info('Assigned blocks to {} branches'.format(len(assigned)))
 		return assigned
@@ -245,7 +246,7 @@ class ParalogIndexer:
 			# hierarchical clustering of rows
 			import numpy as np
 			from scipy.cluster.hierarchy import linkage, leaves_list
-			M = np.array([r[3] for r in self._pi_rows], dtype=float)
+			M = np.array([r[4] for r in self._pi_rows], dtype=float)
 			if M.size:
 				Z = linkage(M, method='ward')
 				order = leaves_list(Z)
@@ -256,14 +257,14 @@ class ParalogIndexer:
 			# sort by assigned-branch column index, then PI vector (desc);
 			# root-assigned blocks (no paralog signal) go last
 			rows = sorted(self._pi_rows,
-						  key=lambda r: (branch_idx.get(r[2], len(branches)),
-										 tuple(-v for v in r[3])))
+						  key=lambda r: (branch_idx.get(r[3], len(branches)),
+										 tuple(-v for v in r[4])))
 
 		with open(fpath, 'w') as fout:
-			fout.write('#block	N	' + '	'.join(branches) + '\n')
-			for bid, N, bch, vec in rows:
-				fout.write('{}	{}	{}\n'.format(
-					bid, N, '	'.join('{:.4f}'.format(v) for v in vec)))
+			fout.write('#block	species	N	' + '	'.join(branches) + '\n')
+			for bid, sp, N, bch, vec in rows:
+				fout.write('{}	{}	{}	{}\n'.format(
+					bid, sp, N, '	'.join('{:.4f}'.format(v) for v in vec)))
 		logger.info('Heatmap matrix written to {} ({} blocks x {} branches)'.format(
 			fpath, len(rows), len(branches)))
 
@@ -272,13 +273,13 @@ class ParalogIndexer:
 		import matplotlib
 		matplotlib.use('Agg')
 		import matplotlib.pyplot as plt
-		M = np.array([r[3] for r in rows], dtype=float)
+		M = np.array([r[4] for r in rows], dtype=float)
 		if M.size == 0:
 			logger.warning('No blocks for heatmap')
 			return
 
 		# row heights: uniform, or scaled by gene count when --scale given
-		Ns = np.array([r[1] for r in rows], dtype=float)
+		Ns = np.array([r[2] for r in rows], dtype=float)
 		method = getattr(self, 'heatmap_scale', None)
 		if method:
 			if method == 'linear':

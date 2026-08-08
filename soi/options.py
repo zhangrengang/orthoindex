@@ -108,7 +108,7 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 						help=argparse.SUPPRESS)  # default True, hidden
 	target.add_argument('--drop-no-cross', action='store_true', default=False,
 						dest='drop_no_cross',
-						help='Drop (instead of merge) HOGs whose genes do not span all child branches')
+						help=argparse.SUPPRESS)  # hidden, fixed default False
 
 
 def args_hog(parser):

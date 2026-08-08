@@ -452,9 +452,9 @@ per branch and assign to the branch with the highest BPI.  Blocks whose best-bra
 falls below --pi-cutoff (0.05) fall back to the root node.
 
 Filter options (shared with `hog` and `paralog`):
-- `--min-child-species N` — skip child HOGs with fewer than N species (default: 1).  Useful for suppressing orphan single-species HOGs that inflate Multi% at branches without WGD.
-- `--cross-speciation` — do not split child HOGs when the genes at a node do not span all child branches.  **Note:** genes that fail to cross the speciation boundary are inherently ambiguous — keeping them unsplit can shift duplication signal from this node down to a child branch.
-- `--drop-no-cross` — drop (instead of merge) entire nodes whose genes do not span all child branches.  **Note:** this can break the HOG parent-child chain: a HOG at node N may have its parent dropped at N's parent, leaving `Parent` as a dead reference and causing internal nodes' copy-number statistics and paralog detection to miss these edges.  Use with caution.
+- `-inparalog` — use inparalogs from the terminal branches.  Do NOT enable if the input is not inparalogs.
+- `--min-child-species N` (default: 2, fixed) — skip child HOGs with fewer than N species.
+- `--cross-speciation` (default: on, fixed) — do not split child HOGs when the genes at a node do not span all child branches.
 
 #### `prune` ####
 The subcommand `prune` purifies orthogroups (OGs) to single-copy per species,

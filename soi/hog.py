@@ -176,8 +176,9 @@ class HOG:
 			# drop leaf HOGs with no parent (genes absent from parent-node
 			# HOGs, e.g. filtered out by min_child_species at the parent level)
 			n_dropped = 0
+			leaf_ids = {n.name for n in sptree.traverse() if n.is_leaf()}
 			for node_id, hogs in list(node_to_hogs.items()):
-				if node_id.startswith('N') or node_id in ('Root', 'None'):
+				if node_id not in leaf_ids:
 					continue
 				for hog in list(hogs):
 					if not hog["parent"]:

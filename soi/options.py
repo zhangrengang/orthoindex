@@ -164,9 +164,9 @@ def args_paralog(parser):
 					  help='Minimum distance to remove a tandem repeated block [default=None]')
 	g_ix.add_argument('--pi-cutoff', type=float, default=0.05,
 					  dest='pi_cutoff', metavar='FLOAT',
-					  help='Minimum branch paralogy index (BPI = paralog_pairs / '
-						   'block_gene_pairs) to assign a block to a branch '
-						   '[default=%(default)s]')
+					  help='BPI cutoff: blocks whose best-branch BPI falls below '
+						   'this are assigned to the root (BPI = paralog_pairs / '
+						   'block_gene_pairs) [default=%(default)s]')
 	g_ix.add_argument('--nodes', metavar='NODE', nargs='+', type=str, default=None,
 					  dest='nodes',
 					  help='Tree nodes to report paralogs for (default: all)')

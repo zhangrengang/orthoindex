@@ -448,8 +448,8 @@ Output files:
 - `<prefix>.tree.pdf/.png` (with `--tree-plot`) — species tree pies
 
 Index mode (default): for each self-synteny block, compute BPI = (paralog pairs / gene pairs)
-per branch and assign to the branch with the highest BPI.  Blocks with BPI below --pi-cutoff
-(0.05) fall back to the root node.
+per branch and assign to the branch with the highest BPI.  Blocks whose best-branch BPI
+falls below --pi-cutoff (0.05) fall back to the root node.
 
 Filter options (shared with `hog` and `paralog`):
 - `--min-child-species N` — skip child HOGs with fewer than N species (default: 1).  Useful for suppressing orphan single-species HOGs that inflate Multi% at branches without WGD.

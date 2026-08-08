@@ -164,7 +164,7 @@ class ParalogIndexer:
 				self._branch_sp_counts[(branch, sp)] += 1
 
 	def _compute_pi(self, block_pairs, branch_pairs):
-		"""Return (PI, n_intersect) for Paralogue Index."""
+		"""Return (BPI, n_intersect) for branch paralogy index."""
 		if not block_pairs:
 			return 0.0, 0
 		common = sum(1 for p in block_pairs if p in branch_pairs)
@@ -324,7 +324,7 @@ class ParalogIndexer:
 		import matplotlib as mpl
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
-					 ax=ax, label='PI', shrink=0.6)
+					 ax=ax, label='BPI', shrink=0.6)
 		fig.tight_layout()
 		fig.savefig(self.prefix + '.heatmap.pdf')
 		fig.savefig(self.prefix + '.heatmap.png', dpi=150)

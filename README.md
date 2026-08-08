@@ -390,7 +390,8 @@ Output files:
 
 #### `paralog` ####
 The subcommand `paralog` outputs HOG-based paralogous gene pairs per branch
-and classifies synteny blocks by branch-specific paralog content (Paralogue Index, PI).
+and classifies synteny blocks by branch-specific paralog content
+(branch paralogy index, BPI).
 
 Input modes (choose one):
 - **rebuild** (default): build HOGs from `-og` + `-s` + `-t`
@@ -439,15 +440,15 @@ soi paralog -og cluster.mcl -s collinearity.ortho -t species.tree \
 
 Output files:
 - `<prefix>.paralog.tsv` — paralog pairs (gene1, gene2, node, species, HOG_id)
-- `<prefix>.stats.tsv` — per-branch per-species block statistics (blocks, gene_pairs, paralog_pairs, mean_PI)
+- `<prefix>.stats.tsv` — per-branch per-species block statistics (blocks, gene_pairs, paralog_pairs, mean_BPI)
 - `<prefix>.{branch}.blocks` — synteny blocks assigned to each branch
-- `<prefix>.heatmap.tsv/.pdf/.png` (with `--heatmap`) — block x branch PI matrix;
-  rows sorted by assigned-branch column index then PI (desc), columns are
+- `<prefix>.heatmap.tsv/.pdf/.png` (with `--heatmap`) — block x branch BPI matrix;
+  rows sorted by assigned-branch column index then BPI (desc), columns are
   internal nodes first then leaf species in tree order
 - `<prefix>.tree.pdf/.png` (with `--tree-plot`) — species tree pies
 
-Index mode (default): for each self-synteny block, compute PI = (paralog pairs / gene pairs)
-per branch and assign to the branch with the highest PI.  Blocks with PI below --pi-cutoff
+Index mode (default): for each self-synteny block, compute BPI = (paralog pairs / gene pairs)
+per branch and assign to the branch with the highest BPI.  Blocks with BPI below --pi-cutoff
 (0.05) fall back to the root node.
 
 Filter options (shared with `hog` and `paralog`):

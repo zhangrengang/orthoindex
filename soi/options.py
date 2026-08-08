@@ -113,18 +113,20 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 
 
 def args_hog(parser):
-	_add_shared_hog_args(parser)
-	parser.add_argument('-pre', '-prefix', type=str, default='HOGs',
-						dest='outpre', metavar='FILE',
-						help='Output prefix [default=%(default)s]')
-	parser.add_argument('--out-stats', action='store_true', default=False,
-						help='Output copy-number statistics TSV (<prefix>.stats.tsv)')
-	parser.add_argument('--bar-plot', action='store_true', default=False,
-						help='Output bar chart of copy-number distribution (<prefix>.bar.pdf/.png)')
-	parser.add_argument('--tree-plot', action='store_true', default=False,
-						help='Output species tree with copy-number pie charts at nodes (<prefix>.tree.pdf/.png)')
-	parser.add_argument('--max-copies', type=int, default=5,
-                        help='Max copy number to track in stats/plot [default=%(default)s]')
+	g_build = parser.add_argument_group('HOG building')
+	_add_shared_hog_args(parser, group=g_build)
+	g_out = parser.add_argument_group('Output')
+	g_out.add_argument('-pre', '-prefix', type=str, default='HOGs',
+					   dest='outpre', metavar='FILE',
+					   help='Output prefix [default=%(default)s]')
+	g_out.add_argument('--out-stats', action='store_true', default=False,
+					   help='Output copy-number statistics TSV (<prefix>.stats.tsv)')
+	g_out.add_argument('--bar-plot', action='store_true', default=False,
+					   help='Output bar chart of copy-number distribution (<prefix>.bar.pdf/.png)')
+	g_out.add_argument('--tree-plot', action='store_true', default=False,
+					   help='Output species tree with copy-number pie charts at nodes (<prefix>.tree.pdf/.png)')
+	g_out.add_argument('--max-copies', type=int, default=5,
+					   help='Max copy number to track in stats/plot [default=%(default)s]')
 
 def func_hog(**kargs):
 	from .hog import xmain as hog_main

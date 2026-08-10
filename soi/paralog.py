@@ -320,7 +320,7 @@ class ParalogIndexer:
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
 					 ax=ax, label='BPI', orientation='horizontal',
-					 pad=0.03, shrink=0.4, aspect=30)
+					 pad=0.25, shrink=0.4, aspect=30)
 		fig.tight_layout()
 		fig.savefig(self.prefix + '.heatmap.pdf')
 		fig.savefig(self.prefix + '.heatmap.png', dpi=150)

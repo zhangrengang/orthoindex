@@ -1237,7 +1237,7 @@ class Gff:
 
 	def to_wgdi(self, chrLst='chr.list', pep='pep.faa', cds='cds.fa',
 				indir='.', outdir='wgdi', species=None, split=True, 
-				min_genes=100, **kargs):
+				min_genes=100, no_lens=False, **kargs):
 		from .creat_ctl import get_good_chrs, sort_version
 		self.gff = os.path.join(indir, self.gff)
 		chrLst = os.path.join(indir, chrLst)
@@ -1274,7 +1274,8 @@ All chromosomes or scaffolds will be used.'.format(chrLst, e))
 			if not split and d_handle:
 				d_handle[sp] = list(d_handle.values())[0]
 			else:
-				d_handle[sp] = open(gff, 'w'), open(lens, 'w'), None, None
+				lens_hd = None if no_lens else open(lens, 'w')
+				d_handle[sp] = open(gff, 'w'), lens_hd, None, None
 		# gff
 		for line in list(d_genes.values()):
 			sp = line.species
@@ -1292,9 +1293,10 @@ All chromosomes or scaffolds will be used.'.format(chrLst, e))
 				continue
 			if chrom not in set(good_chrs):	# only good chrs in *.lens file
 				continue
-			_, lens, _, _ = d_handle[sp]
-			line = (chrom, g_len, bp_len)
-			print('\t'.join(map(str, line)), file=lens)
+			if not no_lens:
+				_, lens, _, _ = d_handle[sp]
+				line = (chrom, g_len, bp_len)
+				print('	'.join(map(str, line)), file=lens)
 			try: d_chrs[sp] += [chrom]
 			except KeyError: d_chrs[sp] = [chrom]
 
@@ -1318,6 +1320,8 @@ All chromosomes or scaffolds will be used.'.format(chrLst, e))
 		# close files
 		for sp in species:
 			for hd in d_handle[sp]:
+				if hd is None:
+					continue
 				try:
 					hd.close()
 				except:

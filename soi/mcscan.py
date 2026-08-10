@@ -1831,6 +1831,43 @@ ggsave('{outfig}', p, width=12, height=7)
 	os.system(cmd)
 
 
+def collinearity_stats(collinearity, sp_pairs=None, out=sys.stdout):
+	"""Summarize collinearity blocks per species pair.
+
+	For each species pair, report: block count, total genes, and the
+	length (gene-pair count N) distribution: min / max / median / mean.
+	"""
+	import statistics
+	if sp_pairs is not None:
+		sp_pairs = set(SpeciesPairs(sp_pairs))
+	# species pair -> list of block lengths (N)
+	d_N = {}
+	for rc in Collinearity(collinearity):
+		sp1, sp2 = rc.species1, rc.species2
+		if sp_pairs is not None and (sp1, sp2) not in sp_pairs \
+				and (sp2, sp1) not in sp_pairs:
+			continue
+		key = (sp1, sp2) if sp1 <= sp2 else (sp2, sp1)
+		try:
+			d_N[key].append(rc.N)
+		except KeyError:
+			d_N[key] = [rc.N]
+
+	print('#sp1\tsp2\tblocks\tgenes\tlength_min\tlength_max\t'
+		  'length_median\tlength_mean', file=out)
+	for key, lengths in sorted(d_N.items()):
+		sp1, sp2 = key
+		blocks = len(lengths)
+		genes = sum(lengths)
+		length_min = min(lengths)
+		length_max = max(lengths)
+		length_median = statistics.median(lengths)
+		length_mean = sum(lengths) / blocks
+		print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{:.2f}'.format(
+			sp1, sp2, blocks, genes, length_min, length_max,
+			length_median, length_mean), file=out)
+
+
 class Segment:
 	def __init__(self, genes):
 		self.genes = genes
@@ -3887,6 +3924,10 @@ def main():
 	elif subcmd == 'block_length':  # block_length distribution
 		collinearity, sp_pairs = sys.argv[2:4]
 		block_length(collinearity, sp_pairs)
+	elif subcmd == 'stats':  # per species-pair block statistics
+		collinearity = sys.argv[2]
+		sp_pairs = sys.argv[3] if len(sys.argv) > 3 else None
+		collinearity_stats(collinearity, sp_pairs)
 	elif subcmd == 'gene_retention':  # Gene retention and loss
 		collinearity, spsd, gff = sys.argv[2:5]
 		gene_retention(collinearity, spsd, gff)

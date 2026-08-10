@@ -1237,7 +1237,7 @@ class Gff:
 
 	def to_wgdi(self, chrLst='chr.list', pep='pep.faa', cds='cds.fa',
 				indir='.', outdir='wgdi', species=None, split=True, 
-				min_genes=100, no_lens=False, **kargs):
+				min_genes=100, no_lens=False, pair_gff=False, **kargs):
 		from .creat_ctl import get_good_chrs, sort_version
 		self.gff = os.path.join(indir, self.gff)
 		chrLst = os.path.join(indir, chrLst)
@@ -1262,30 +1262,58 @@ All chromosomes or scaffolds will be used.'.format(chrLst, e))
 			species = self.species
 		else:
 			species = parse_species(species)
-		for sp in species:
-			if split:
-				prefix = '{}/{}'.format(outdir, sp)
-			else:
-				prefix = '{}/{}'.format(outdir, 'all')
-			gff = prefix + '.gff'
-			lens = prefix + '.lens'
-			cds = prefix + '.cds'
-			pep = prefix + '.pep'
-			if not split and d_handle:
-				d_handle[sp] = list(d_handle.values())[0]
-			else:
-				lens_hd = None if no_lens else open(lens, 'w')
-				d_handle[sp] = open(gff, 'w'), lens_hd, None, None
+		if pair_gff:
+			# per species-pair gff files: {sp1}-{sp2}.gff (both species' genes)
+			pairs = list(itertools.combinations_with_replacement(species, 2))
+			for sp1, sp2 in pairs:
+				prefix = '{}/{}-{}'.format(outdir, sp1, sp2) if split \
+						 else '{}/{}'.format(outdir, 'all')
+				d_handle[(sp1, sp2)] = open(prefix + '.gff', 'w')
+			for sp in species:
+				if split:
+					prefix = '{}/{}'.format(outdir, sp)
+				else:
+					prefix = '{}/{}'.format(outdir, 'all')
+				lens_hd = None if no_lens else open(prefix + '.lens', 'w')
+				d_handle[sp] = None, lens_hd, None, None
+		else:
+			for sp in species:
+				if split:
+					prefix = '{}/{}'.format(outdir, sp)
+				else:
+					prefix = '{}/{}'.format(outdir, 'all')
+				gff = prefix + '.gff'
+				lens = prefix + '.lens'
+				cds = prefix + '.cds'
+				pep = prefix + '.pep'
+				if not split and d_handle:
+					d_handle[sp] = list(d_handle.values())[0]
+				else:
+					lens_hd = None if no_lens else open(lens, 'w')
+					d_handle[sp] = open(gff, 'w'), lens_hd, None, None
 		# gff
-		for line in list(d_genes.values()):
-			sp = line.species
-			if sp not in set(species):
-				continue
-			gff, _, cds, pep = d_handle[sp]
-			chrom = line.chrom
-			line = [chrom, line.gene, line.start, line.end,
-					line.strand, line.index+1, line.gene]
-			print('\t'.join(map(str, line)), file=gff)
+		if pair_gff:
+			pair_keys = [k for k in d_handle if isinstance(k, tuple)]
+			for line in list(d_genes.values()):
+				sp = line.species
+				if sp not in set(species):
+					continue
+				chrom = line.chrom
+				fields = [chrom, line.gene, line.start, line.end,
+						  line.strand, line.index+1, line.gene]
+				for sp1, sp2 in pair_keys:
+					if sp in (sp1, sp2):
+						print('	'.join(map(str, fields)), file=d_handle[(sp1, sp2)])
+		else:
+			for line in list(d_genes.values()):
+				sp = line.species
+				if sp not in set(species):
+					continue
+				gff, _, cds, pep = d_handle[sp]
+				chrom = line.chrom
+				line = [chrom, line.gene, line.start, line.end,
+						line.strand, line.index+1, line.gene]
+				print('	'.join(map(str, line)), file=gff)
 		# lens
 		d_chrs = {}
 		for (sp, chrom), (g_len, bp_len) in list(self.d_length2.items()):
@@ -1318,10 +1346,14 @@ All chromosomes or scaffolds will be used.'.format(chrLst, e))
 			with open(outctl, 'w') as f:
 				f.write('2000\n2000\n{}\n{}\n'.format(chrs1, chrs2))
 		# close files
-		for sp in species:
-			for hd in d_handle[sp]:
-				if hd is None:
+		seen = set()
+		for key, handles in list(d_handle.items()):
+			if not isinstance(handles, (tuple, list)):
+				handles = (handles,)
+			for hd in handles:
+				if hd is None or id(hd) in seen:
 					continue
+				seen.add(id(hd))
 				try:
 					hd.close()
 				except:

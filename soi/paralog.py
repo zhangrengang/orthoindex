@@ -299,7 +299,8 @@ class ParalogIndexer:
 		# cumulative x positions (left of each column)
 		x = np.concatenate([[0.0], np.cumsum(w)])
 
-		fig, ax = plt.subplots(figsize=(12, min(7, max(3, 0.3 * len(branches)))))
+		fig, ax = plt.subplots(figsize=(min(7, max(4, 0.02 * M.shape[0])),
+										min(7, max(3, 0.3 * len(branches)))))
 		cmap = plt.get_cmap('YlOrRd')
 		# transposed: one row per branch, segments = blocks
 		for i, branch_vec in enumerate(M.T):
@@ -319,7 +320,7 @@ class ParalogIndexer:
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
 					 ax=ax, label='BPI', orientation='horizontal',
-					 pad=0.15, shrink=0.6)
+					 pad=0.03, shrink=0.4, aspect=30)
 		fig.tight_layout()
 		fig.savefig(self.prefix + '.heatmap.pdf')
 		fig.savefig(self.prefix + '.heatmap.png', dpi=150)

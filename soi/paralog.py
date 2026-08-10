@@ -278,54 +278,48 @@ class ParalogIndexer:
 			logger.warning('No blocks for heatmap')
 			return
 
-		# row heights: uniform, or scaled by gene count when --scale given
+		# column widths: uniform, or scaled by gene count when --scale given
+		# (transposed layout: columns are blocks)
 		Ns = np.array([r[2] for r in rows], dtype=float)
 		method = getattr(self, 'heatmap_scale', None)
 		if method:
 			if method == 'linear':
-				h = Ns
+				w = Ns
 			elif method == 'log2':
-				h = np.log2(1 + Ns)
+				w = np.log2(1 + Ns)
 			elif method == 'log10':
-				h = np.log10(1 + Ns)
+				w = np.log10(1 + Ns)
 			elif method == 'sqrt':
-				h = np.sqrt(Ns)
+				w = np.sqrt(Ns)
 			else:  # 'log' = natural log
-				h = np.log1p(Ns)
-			h = h / h.max() * (1 - 1e-3) + 1e-3  # tiny floor, no artificial base
+				w = np.log1p(Ns)
+			w = w / w.max() * (1 - 1e-3) + 1e-3  # tiny floor
 		else:
-			h = np.ones(len(rows))
-		# cumulative y positions (bottom of each row)
-		y = np.concatenate([[0.0], np.cumsum(h)])
+			w = np.ones(len(rows))
+		# cumulative x positions (left of each column)
+		x = np.concatenate([[0.0], np.cumsum(w)])
 
-		fig, ax = plt.subplots(figsize=(max(6, 0.4 * len(branches)),
-										min(7, max(3, 0.02 * len(rows)))))
+		fig, ax = plt.subplots(figsize=(12, min(7, max(3, 0.3 * len(branches)))))
 		cmap = plt.get_cmap('YlOrRd')
-		# draw each row as a broken barh segment per branch column
-		for i in range(len(rows)):
-			col_frac = M[i]
-			segs = []
-			for j, v in enumerate(col_frac):
-				segs.append((j - 0.5, 1.0))  # (xstart, width)
-			colors = [cmap(v) for v in col_frac]
-			ax.broken_barh(segs, (y[i], h[i]),
+		# transposed: one row per branch, segments = blocks
+		for i, branch_vec in enumerate(M.T):
+			colors = [cmap(v) for v in branch_vec]
+			ax.broken_barh(list(zip(x[:-1], w)), (i - 0.5, 1.0),
 						   facecolors=colors, edgecolors='none',
 						   linewidths=0)
-		ax.set_xlim(-0.5, len(branches) - 0.5)
-		ax.set_ylim(0, y[-1])
-		ax.invert_yaxis()  # first row on top, consistent with imshow default
-		ax.set_xticks(range(len(branches)))
-		ax.set_xticklabels(branches, rotation=90, fontsize=6)
-		ax.xaxis.tick_top()  # ticks on top
-		ax.tick_params(axis='x', which='both', top=True, bottom=False,
-					   labeltop=True, labelbottom=False)
-		ax.set_yticks([])
-		ax.set_xlabel('Branch')
-		ax.set_ylabel('Block')
+		ax.set_xlim(0, x[-1])
+		ax.set_ylim(-0.5, len(branches) - 0.5)
+		ax.set_yticks(range(len(branches)))
+		ax.set_yticklabels(branches, fontsize=6)
+		ax.yaxis.tick_right()  # branch names on the right
+		ax.set_ylabel('Branch')
+		ax.set_xticks([])
+		ax.set_xlabel('Block')
 		import matplotlib as mpl
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
-					 ax=ax, label='BPI', shrink=0.6)
+					 ax=ax, label='BPI', orientation='horizontal',
+					 pad=0.15, shrink=0.6)
 		fig.tight_layout()
 		fig.savefig(self.prefix + '.heatmap.pdf')
 		fig.savefig(self.prefix + '.heatmap.png', dpi=150)

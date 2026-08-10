@@ -312,16 +312,17 @@ class ParalogIndexer:
 		ax.set_ylim(-0.5, len(branches) - 0.5)
 		ax.invert_yaxis()  # branches top-down (first branch at top)
 		ax.set_yticks(range(len(branches)))
-		ax.set_yticklabels(branches, fontsize=6)
+		tick_fs = max(4, min(12, 120 // max(len(branches), 1)))
+		ax.set_yticklabels(branches, fontsize=tick_fs)
 		ax.yaxis.tick_right()  # branch names on the right
-		ax.set_ylabel('Branch')
+		ax.set_ylabel('Branch', fontsize=15)
 		ax.set_xticks([])
-		ax.set_xlabel('Block')
+		ax.set_xlabel('Synteny', fontsize=15)
 		import matplotlib as mpl
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
 					 ax=ax, label='BPI', orientation='horizontal',
-					 pad=0.0, shrink=0.4, aspect=30, anchor=(0.0, 0.5))
+					 pad=-0.02, shrink=0.32, aspect=20, anchor=(0.0, 0.5))
 		fig.tight_layout()
 		fig.savefig(self.prefix + '.heatmap.pdf')
 		fig.savefig(self.prefix + '.heatmap.png', dpi=150)

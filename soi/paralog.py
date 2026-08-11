@@ -312,7 +312,7 @@ class ParalogIndexer:
 		ax.set_ylim(-0.5, len(branches) - 0.5)
 		ax.invert_yaxis()  # branches top-down (first branch at top)
 		ax.set_yticks(range(len(branches)))
-		tick_fs = max(6, min(12, 180 // max(len(branches), 1)))
+		tick_fs = max(6, min(12, 240 // max(len(branches), 1)))
 		ax.set_yticklabels(branches, fontsize=tick_fs)
 		ax.yaxis.tick_right()  # branch names on the right
 		ax.set_ylabel('Branch', fontsize=15)

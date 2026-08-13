@@ -2052,7 +2052,7 @@ def parse_group(groups):
 
 
 def cluster_by_mcl(collinearities, orthologs=None, inflation=2,method='mcl',
-				   outgroup=None, ingroup=None, outpre='cluster'):
+				   outgroup=None, ingroup=None, outpre='cluster', inparalog=False):
 	check_cmd('mcl')
 	ingroup = set(parse_group(ingroup))
 	outgroup = set(parse_group(outgroup))
@@ -2066,7 +2066,7 @@ def cluster_by_mcl(collinearities, orthologs=None, inflation=2,method='mcl',
 	G = nx.Graph()
 	for rc in XCollinearity(collinearities, orthologs=orthologs):
 		sp1, sp2 = rc.species
-		if sp1 == sp2:  # exclude paralogs
+		if not inparalog and sp1 == sp2:  # exclude paralogs (unless -inparalog)
 			i += 1
 			continue
 		if sp1 in outgroup or sp2 in outgroup:  # exclude outgoup

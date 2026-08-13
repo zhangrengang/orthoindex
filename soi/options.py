@@ -98,8 +98,8 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 						help='Species tree file (Newick)')
 	target.add_argument('-inparalog', action='store_true', default=False,
 						dest='paralog',
-						help='Include paralogs in `-s` input. Do NOT '
-							 'enable if the input paralogs is not terminal inparalogs')
+						help=argparse.SUPPRESS) #'Include paralogs in `-s` input. Do NOT '
+							 #'enable if the input paralogs is not terminal inparalogs')
 	target.add_argument('--min-child-species', type=int, default=2,
 						dest='min_child_species', metavar='INT',
 						help=argparse.SUPPRESS)  # 'Minimum number of species in a child HOG for it to be retained [default=%(default)s]'
@@ -131,14 +131,14 @@ def func_hog(**kargs):
 	from .hog import xmain as hog_main
 	hog_main(**kargs)
 def args_paralog(parser):
-	g_hog = parser.add_argument_group('HOG rebuilding')
+	g_hog = parser.add_argument_group('HOG building')
 	_add_shared_hog_args(parser, og_required=False, s_required=False,
 						 t_required=False, group=g_hog)
 	g_hog.add_argument('--write-hog', action='store_true', default=True,
 					   dest='write_hog',
 					   help=argparse.SUPPRESS)  # 'Write HOGs.tsv while rebuilding (for later --hog reuse)'
 
-	g_in = parser.add_argument_group('Prebuilt inputs (skip rebuilding)')
+	g_in = parser.add_argument_group('Prebuilt inputs (skip HOG building and/or Paralog indexing)')
 	g_in.add_argument('--hog', type=str, default=None,
 					  dest='hog_tsv', metavar='FILE',
 					  help='Load HOGs from existing HOGs.tsv (skip rebuilding); '
@@ -165,7 +165,7 @@ def args_paralog(parser):
 	g_ix.add_argument('--pi-cutoff', type=float, default=0.05,
 					  dest='pi_cutoff', metavar='FLOAT',
 					  help='BPI cutoff: blocks whose best-branch BPI falls below '
-						   'this are assigned to the root (BPI = paralog_pairs / '
+						   'this are assigned to the root (BPI = branch paralog_pairs / '
 						   'block_gene_pairs) [default=%(default)s]')
 	g_ix.add_argument('--nodes', metavar='NODE', nargs='+', type=str, default=None,
 					  dest='nodes',
@@ -352,6 +352,9 @@ This will use Orthology Index as weight for MCL [default=%(default)s]")
 	parser.add_argument('-m','-method', type=str, default='mcl',
 						dest='method',
 						help="cluster method (mcl, comp) [default=%(default)s]")
+	parser.add_argument('-inparalog', action='store_true', default=False,
+						dest='inparalog',
+						help=argparse.SUPPRESS)  # 'Include paralogs (same-species gene pairs) in -s input. Do NOT enable if the input paralogs is not terminal inparalogs'
 
 def func_cluster(**kargs):
 	from .mcscan import cluster_by_mcl

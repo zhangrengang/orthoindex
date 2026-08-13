@@ -63,8 +63,9 @@ The last column indicates the source of alleles; for example, `orthology:15422` 
 The column number will extend for polyploids.
 
 #### Orthology format conversion ####
-The output formats of different orthology inference tools are different. It maybe better to convert them into a unified format. Here is an example:
+The output formats of different orthology inference tools are different. It maybe better to convert them into a unified format (gene pairs). Here is an example:
 ```
 soi-syn homologs OrthoFinder/OrthoFinder/Results_*/ > homologs.txt
 ```
-The output file is in a simplest pair format (`gene1<TAB>gene2`), containing all orthologs and inparalogs inferred by OrthoFinder. Outputs from some other orthology inference tools are also supported. See details for [these formats](README.md#orthology-format).
+The output file is in a simplest pair format (`gene1<TAB>gene2`), containing all orthologs and inparalogs inferred by OrthoFinder. 
+Outputs from some other orthology inference tools are also supported. See details for [these formats](README.md#orthology-format).

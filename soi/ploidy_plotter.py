@@ -143,7 +143,8 @@ def plot_bars(data, titles, ax=None, outfigs=None, nrow=1, ncol=1, fontsize=10,
 				nrow, ncol, sharex=True, figsize=(10*ncol/2, 8*ncol/2))
 			cells = list(itertools.product(
 				list(range(nrow)), list(range(ncol))))
-			ax = [ax[cell] for cell in cells]
+			ax = np.array(ax).ravel()
+			ax = [ax[i*ncol+j] for i, j in cells]
 	else:
 		ax = [ax]
 	tick_label = list(range(0, max_ploidy+1))

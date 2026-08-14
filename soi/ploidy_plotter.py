@@ -215,7 +215,7 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 		cax = fig.add_subplot(gs[1, 1])
 	else:
 		ax_hm = fig.add_subplot(111)
-		cax = ax_hm
+		cax = None
 	cmap = plt.get_cmap('YlOrRd')
 	ax_hm.imshow(M, aspect='auto', cmap=cmap, vmin=0, vmax=1,
 				 interpolation='nearest')
@@ -233,12 +233,18 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 		ax_hm.set_ylabel('Reference')
 	# let tight_layout reserve space for right/top labels, then shrink colorbar
 	fig.tight_layout()
-	fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
-									   cmap=cmap),
-				 cax=cax, label='Proportion of duplicated windows',
-				 orientation='horizontal')
-	cax.set_position([cax.get_position().x0, cax.get_position().y0,
-					  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
+	if cax is not None:
+		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
+										   cmap=cmap),
+					 cax=cax, label='Proportion of duplicated windows',
+					 orientation='horizontal')
+		cax.set_position([cax.get_position().x0, cax.get_position().y0,
+						  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
+	else:
+		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
+										   cmap=cmap),
+					 ax=ax_hm, label='Proportion of duplicated windows',
+					 orientation='horizontal', shrink=0.5)
 	for outfig in outfigs:
 		root, ext = os.path.splitext(outfig)
 		fig.savefig('{}.heatmap{}'.format(root, ext), bbox_inches='tight')

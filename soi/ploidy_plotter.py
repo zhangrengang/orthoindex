@@ -103,6 +103,9 @@ def main(args):
 			args.ref = list(args.qry)
 		elif args.qry is None:
 			args.qry = list(args.ref)
+		bad = sorted(set(args.ref + args.qry) - set(all_sps))
+		if bad:
+			raise ValueError('species not in tree: {}'.format(', '.join(bad)))
 	elif args.ref is None and args.qry is None:
 		raise ValueError('need -t, or at least one of -r/-q')
 	elif args.ref is None:
@@ -243,6 +246,9 @@ def _draw_cladogram(ax, sptree, sps):
 	# prune to the subset, then collapse single-child nodes (prune keeps
 	# topology only when all kept leaves are present)
 	keep = [sp for sp in tree.get_leaf_names() if sp in set(sps)]
+	missing = sorted(set(sps) - set(tree.get_leaf_names()))
+	if missing:
+		raise ValueError('species not in tree: {}'.format(', '.join(missing)))
 	tree.prune(keep, preserve_branch_length=False)
 	# collapse single-child internal nodes left after pruning
 	for node in list(tree.traverse('postorder')):

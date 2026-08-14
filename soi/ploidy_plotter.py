@@ -291,9 +291,21 @@ def _draw_cladogram(ax, sptree, sps):
 		while n.up:
 			d += 1
 			n = n.up
+		if d == 0:
+			# root: leftmost, but not colliding with tips (x=0)
+			return -float(max_depth) - 1
 		return -d
 
 	root = tree
+	# max depth of internal nodes (for root placement)
+	max_depth = 0
+	for n in tree.traverse():
+		d = 0
+		nn = n
+		while nn.up:
+			d += 1
+			nn = nn.up
+		max_depth = max(max_depth, d)
 	_layout(root, 0, len(leaves)-1)
 	# vertical lines: connect parent x to child x at child y
 	for node in tree.traverse():

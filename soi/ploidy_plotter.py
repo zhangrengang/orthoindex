@@ -235,7 +235,8 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	fig.tight_layout()
 	fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 									   cmap=cmap),
-				 cax=cax, label='depth ratio', orientation='horizontal')
+				 cax=cax, label='Proportion of duplicated windows',
+				 orientation='horizontal')
 	cax.set_position([cax.get_position().x0, cax.get_position().y0,
 					  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
 	for outfig in outfigs:
@@ -280,8 +281,10 @@ def _draw_cladogram(ax, sptree, sps):
 		tip_x[t] = x
 	x_end = max(tip_x.values())
 	ax.set_xlim(ax.get_xlim()[0], x_end)
+	n = len(tips)
+	ax.set_ylim(n + 0.5, 0.5)  # remove Phylo y padding; tips align with heatmap rows
 	for i, t in enumerate(tips):
-		# Phylo.draw y is 1-based (tip 0 at y=1, top since ylim inverted)
+		# Phylo draws tip i at displayed y = i+1 (1..n, top since y-inverted)
 		ax.plot([tip_x[t], x_end], [i + 1, i + 1],
 				color='0.6', lw=0.6, ls=':', zorder=0)
 	ax.set_xticks([])

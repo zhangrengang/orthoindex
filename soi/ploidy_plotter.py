@@ -208,8 +208,7 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	if sptree:
 		# top row: tree + heatmap (same height, so rows align); bottom row: colorbar
 		gs = gridspec.GridSpec(2, 2, width_ratios=[2, 6],
-							   height_ratios=[n_ref, 0.5], wspace=0.02, hspace=0.1,
-							   left=0.01, right=0.99, top=0.98, bottom=0.01)
+							   height_ratios=[n_ref, 0.5], wspace=0.02, hspace=0.1)
 		ax_tree = fig.add_subplot(gs[0, 0])
 		_draw_cladogram(ax_tree, sptree, refs)
 		ax_hm = fig.add_subplot(gs[0, 1])
@@ -231,7 +230,8 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	ax_hm.set_xlabel('Query')
 	if not sptree:
 		ax_hm.set_ylabel('Reference')
-	# shrink the colorbar: anchor left, smaller length
+	# let tight_layout reserve space for right/top labels, then shrink colorbar
+	fig.tight_layout()
 	fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 									   cmap=cmap),
 				 cax=cax, label='depth ratio', orientation='horizontal')
@@ -239,7 +239,7 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 					  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
 	for outfig in outfigs:
 		root, ext = os.path.splitext(outfig)
-		fig.savefig('{}.heatmap{}'.format(root, ext))
+		fig.savefig('{}.heatmap{}'.format(root, ext), bbox_inches='tight')
 	plt.close(fig)
 	logger.info('Depth-ratio heatmap written to {}.heatmap.pdf/png'.format(
 		os.path.splitext(outfigs[0])[0]))

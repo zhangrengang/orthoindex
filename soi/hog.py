@@ -68,6 +68,8 @@ class HOG:
 
 	def pipe(self, write_tsv=True):
 		logger.info(f'Reading and Numbering species tree from {self.sptreefile}')
+		if not self.sptreefile:
+			raise ValueError('rebuild needs -t species tree (HOG rebuilding requires a species tree)')
 		self.tree = sptree = number_nodes(self.sptreefile)
 		self.species = sptree.get_leaf_names()
 

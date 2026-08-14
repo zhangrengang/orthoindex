@@ -206,16 +206,13 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	n_ref, n_qry = M.shape
 	fig = plt.figure(figsize=(max(5, 0.4*n_qry + 3), max(6, 0.5*n_ref + 2)))
 	if sptree:
-		# top row: tree + heatmap (same height, so rows align); bottom row: colorbar
-		gs = gridspec.GridSpec(2, 2, width_ratios=[2, 6],
-							   height_ratios=[n_ref, 0.5], wspace=0.005, hspace=0.1)
+		gs = gridspec.GridSpec(1, 2, width_ratios=[2, 6],
+							   wspace=0.005)
 		ax_tree = fig.add_subplot(gs[0, 0])
 		_draw_cladogram(ax_tree, sptree, refs)
 		ax_hm = fig.add_subplot(gs[0, 1])
-		cax = fig.add_subplot(gs[1, 1])
 	else:
 		ax_hm = fig.add_subplot(111)
-		cax = None
 	cmap = plt.get_cmap('YlOrRd')
 	ax_hm.imshow(M, aspect='auto', cmap=cmap, vmin=0, vmax=1,
 				 interpolation='nearest')
@@ -231,20 +228,12 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	ax_hm.set_xlabel('Query')
 	if not sptree:
 		ax_hm.set_ylabel('Reference')
-	# let tight_layout reserve space for right/top labels, then shrink colorbar
+	# colorbar attached to the heatmap axes (same for tree / no-tree)
 	fig.tight_layout()
-	if cax is not None:
-		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
-										   cmap=cmap),
-					 cax=cax, label='Proportion of duplicated windows',
-					 orientation='horizontal')
-		cax.set_position([cax.get_position().x0, cax.get_position().y0,
-						  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
-	else:
-		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
-										   cmap=cmap),
-					 ax=ax_hm, label='Proportion of duplicated windows',
-					 orientation='horizontal', shrink=0.5)
+	fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
+									   cmap=cmap),
+				 ax=ax_hm, label='Proportion of duplicated windows',
+				 orientation='horizontal', shrink=0.5)
 	for outfig in outfigs:
 		root, ext = os.path.splitext(outfig)
 		fig.savefig('{}.heatmap{}'.format(root, ext), bbox_inches='tight')

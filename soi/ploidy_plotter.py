@@ -58,6 +58,8 @@ def ploidy_args(parser):
 						help="output ref x qry depth-ratio heatmap with tree on the left")
 	parser.add_argument('--threads', metavar='INT', type=int, default=1, dest='threads',
 						help="number of parallel processes for ref x qry depth calculation [default=%(default)s]")
+	parser.add_argument('--no-bars', action='store_true', default=False, dest='no_bars',
+						help="skip the per-pair bar plots (heatmap only)")
 	parser.add_argument('-pre', '-prefix', metavar='PREFIX', type=str,
 						dest='output', default=None, help="output prefix")
 	parser.add_argument('--format', metavar='figure file out format', action='append',
@@ -112,14 +114,14 @@ def main(args):
 		sps = [x[:2] for x in sps]
 		args.output = 'dp.' + '-'.join(sps) + '_' + str(args.window_size)
 	if args.nrow is None:
-		args.nrow = int(ceil(sqrt(len(args.qry))))
+		args.nrow = int(ceil(sqrt(len(args.ref) * len(args.qry))))
 	if args.window_step is None:
 		args.window_step = args.window_size / 5
 	if args.min_overlap is None:
 		args.min_overlap = args.window_size / 2.5
 	elif args.min_overlap <= 1:
 		args.min_overlap = args.min_overlap*args.window_size
-	args.ncol = int(ceil(1e0*len(args.qry) / args.nrow))
+	args.ncol = int(ceil(1e0*len(args.ref)*len(args.qry) / args.nrow))
 	args.outfigs = [args.output+'.'+fmt for fmt in args.format]
 	# suptitle = 'Reference: ' + args.ref
 	# xlabel = 'Relative Ploidy'.format(args.window_size)
@@ -178,6 +180,8 @@ def plot_fold(collinearity, gff, ref, qry, **kargs):
 			ratio[(ref, sp)] = 0.0
 	if kargs.get('heatmap'):
 		_plot_heatmap(ratio, refs, qry, kargs)
+	if kargs.get('no_bars'):
+		return
 	kargs['titles'] = all_titles
 	plot_bars(all_data, ref=None, **kargs)
 	return
@@ -210,12 +214,17 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 				 interpolation='nearest')
 	ax_hm.set_xticks(range(n_qry))
 	ax_hm.set_xticklabels(qry, rotation=90, fontsize=6)
+	ax_hm.xaxis.tick_top()  # column labels on top
+	ax_hm.tick_params(axis='x', which='both', top=True, bottom=False,
+					  labeltop=True, labelbottom=False)
 	ax_hm.set_yticks(range(n_ref))
 	ax_hm.set_yticklabels(refs, fontsize=6)
+	ax_hm.yaxis.tick_right()  # row labels on the right
 	ax_hm.set_xlabel('Query')
 	ax_hm.set_ylabel('Reference')
 	fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1), cmap=cmap),
-				 ax=ax_hm, label='depth ratio', shrink=0.5)
+				 ax=ax_hm, label='depth ratio', orientation='horizontal',
+				 pad=0.05, shrink=0.5, anchor=(0.0, 0.5))
 	for outfig in outfigs:
 		root, ext = os.path.splitext(outfig)
 		fig.savefig('{}.heatmap{}'.format(root, ext))
@@ -231,11 +240,11 @@ def _draw_cladogram(ax, sptree, sps):
 	"""
 	from .tree import number_nodes
 	tree = number_nodes(sptree)
-	# prune to the subset: drop leaves not in sps, then collapse single-child nodes
-	keep = set(sps)
-	for node in list(tree.traverse()):
-		if node.is_leaf() and node.name not in keep:
-			node.detach()
+	# prune to the subset, then collapse single-child nodes (prune keeps
+	# topology only when all kept leaves are present)
+	keep = [sp for sp in tree.get_leaf_names() if sp in set(sps)]
+	tree.prune(keep, preserve_branch_length=False)
+	# collapse single-child internal nodes left after pruning
 	for node in list(tree.traverse('postorder')):
 		if not node.is_leaf() and not node.is_root() and len(node.children) == 1:
 			node.delete(prevent_nondicotomic=False)

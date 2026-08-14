@@ -47,10 +47,14 @@ def ploidy_args(parser):
 	parser.add_argument('-g', '-gff', metavar='FILE', type=str, required=True, nargs='+',
 						dest='gff',
 						help="gene annotation gff file (*.gff, one of MCSCANX/WGDI input)[required]")
-	parser.add_argument('-r', '-ref', metavar='SPECIES', nargs='+', type=str, required=True, dest='ref',
-						help="reference species [required]")
+	parser.add_argument('-r', '-ref', metavar='SPECIES', nargs='+', type=str, required=False, dest='ref',
+						help="reference species (default: from -t tree or same as -q)")
 	parser.add_argument('-q', '-qry', metavar='SPECIES', nargs='+', type=str, dest='qry',
-						required=True, help="query species [required]")
+						required=False, help="query species (default: from -t tree or same as -r)")
+	parser.add_argument('-t', '-sptree', metavar='TREE', type=str, default=None, dest='sptree',
+						help="species tree: use its leaf species as ref/qry set")
+	parser.add_argument('--heatmap', action='store_true', default=False, dest='heatmap',
+						help="output ref x qry depth-ratio heatmap with tree on the left")
 	parser.add_argument('-pre', '-prefix', metavar='PREFIX', type=str,
 						dest='output', default=None, help="output prefix")
 	parser.add_argument('--format', metavar='figure file out format', action='append',
@@ -82,6 +86,24 @@ def xmain(**kargs):
 
 def main(args):
 #	args = makeArgparse()
+	# species resolution: -t provides the full species list; -r/-q may
+	# be empty (filled from the other or from the tree)
+	if args.sptree is not None:
+		from .tree import number_nodes
+		all_sps = number_nodes(args.sptree).get_leaf_names()
+		if args.ref is None and args.qry is None:
+			args.ref = list(all_sps)
+			args.qry = list(all_sps)
+		elif args.ref is None:
+			args.ref = list(args.qry)
+		elif args.qry is None:
+			args.qry = list(args.ref)
+	elif args.ref is None and args.qry is None:
+		raise ValueError('need -t, or at least one of -r/-q')
+	elif args.ref is None:
+		args.ref = list(args.qry)
+	elif args.qry is None:
+		args.qry = list(args.ref)
 	sps = list(args.ref) + args.qry
 	if args.output is None:
 		sps = [x[:2] for x in sps]
@@ -112,6 +134,7 @@ def plot_fold(collinearity, gff, ref, qry, **kargs):
 	d_coord_path, d_coord_graph = parse_gff(gff, refs + qry)
 	all_data = []
 	all_titles = []
+	ratio = {}  # (ref, qry) -> depth ratio (>=2 inter-species, >=1 self)
 	for ref in refs:
 		for sp in qry:
 			d_fold = get_ploidy(d_coord_path[ref], d_coord_graph[ref],
@@ -119,9 +142,102 @@ def plot_fold(collinearity, gff, ref, qry, **kargs):
 								**kargs)
 			all_data.append(np.array(sorted(d_fold.items())))
 			all_titles.append('{} vs {}'.format(ref, sp))
+			total = sum(d_fold.values())
+			if total > 0:
+				if ref == sp:
+					ratio[(ref, sp)] = sum(c for d, c in d_fold.items() if d >= 1) / total
+				else:
+					ratio[(ref, sp)] = sum(c for d, c in d_fold.items() if d >= 2) / total
+			else:
+				ratio[(ref, sp)] = 0.0
+	if kargs.get('heatmap'):
+		_plot_heatmap(ratio, refs, qry, kargs)
 	kargs['titles'] = all_titles
 	plot_bars(all_data, ref=None, **kargs)
 	return
+
+
+def _plot_heatmap(ratio, refs, qry, kargs):
+	"""ref x qry depth-ratio heatmap with the species tree on the left."""
+	import matplotlib as mpl
+	from matplotlib import gridspec
+	sptree = kargs.get('sptree')
+	outfigs = kargs.get('outfigs') or [kargs.get('output', 'dp') + '.pdf']
+	# row/col order: tree leaf order if tree given, else refs order
+	if sptree:
+		from .tree import number_nodes
+		order = number_nodes(sptree).get_leaf_names()
+		refs = [r for r in order if r in refs]
+		qry = [q for q in order if q in qry]
+	M = np.array([[ratio.get((r, q), 0.0) for q in qry] for r in refs])
+	n_ref, n_qry = M.shape
+	fig = plt.figure(figsize=(max(6, 0.35*n_qry + 2), max(4, 0.35*n_ref)))
+	if sptree:
+		gs = gridspec.GridSpec(1, 2, width_ratios=[1, 6], wspace=0.05)
+		ax_tree = fig.add_subplot(gs[0])
+		_draw_cladogram(ax_tree, sptree, refs)
+		ax_hm = fig.add_subplot(gs[1])
+	else:
+		ax_hm = fig.add_subplot(111)
+	cmap = plt.get_cmap('YlOrRd')
+	ax_hm.imshow(M, aspect='auto', cmap=cmap, vmin=0, vmax=1,
+				 interpolation='nearest')
+	ax_hm.set_xticks(range(n_qry))
+	ax_hm.set_xticklabels(qry, rotation=90, fontsize=6)
+	ax_hm.set_yticks(range(n_ref))
+	ax_hm.set_yticklabels(refs, fontsize=6)
+	ax_hm.set_xlabel('Query')
+	ax_hm.set_ylabel('Reference')
+	fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1), cmap=cmap),
+				 ax=ax_hm, label='depth ratio', shrink=0.5)
+	for outfig in outfigs:
+		root, ext = os.path.splitext(outfig)
+		fig.savefig('{}.heatmap{}'.format(root, ext))
+	plt.close(fig)
+
+
+def _draw_cladogram(ax, sptree, sps):
+	"""Draw a simplified cladogram (topology only) aligned to heatmap rows."""
+	from .tree import number_nodes
+	tree = number_nodes(sptree)
+	leaves = [l for l in tree.get_leaf_names() if l in sps]
+	leaf_idx = {sp: i for i, sp in enumerate(leaves)}
+	pos = {}  # node -> y coordinate (leaf index for leaves)
+
+	def _layout(node, lo, hi):
+		if node.is_leaf():
+			pos[node.name] = leaf_idx.get(node.name, (lo+hi)/2)
+			return pos[node.name]
+		child_ys = [_layout(c, lo, hi) for c in node.children]
+		y = sum(child_ys) / len(child_ys)
+		pos[node.name] = y
+		for c, cy in zip(node.children, child_ys):
+			ax.plot([pos[node.name], pos[node.name], _xpos(c)], [pos[node.name], cy, cy],
+					color='k', lw=0.8)
+		return y
+
+	def _xpos(node):
+		# x by depth from root
+		d = 0
+		n = node
+		while n.up:
+			d += 1
+			n = n.up
+		return -d
+
+	root = tree
+	_layout(root, 0, len(leaves)-1)
+	# vertical lines: connect parent x to child x at child y
+	for node in tree.traverse():
+		if node.is_leaf() or node.is_root():
+			continue
+		for c in node.children:
+			ax.plot([_xpos(node), _xpos(c)], [pos[c.name], pos[c.name]],
+					color='k', lw=0.8)
+	ax.set_xlim(-_xpos(root)-1, 0)
+	ax.set_ylim(-0.5, len(leaves)-0.5)
+	ax.invert_yaxis()
+	ax.axis('off')
 
 
 def _outfig(f, ref):

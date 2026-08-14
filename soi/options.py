@@ -92,7 +92,7 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 						help='Orthogroup file (MCL format)')
 	target.add_argument('-s', '-synteny', required=s_required, type=str, nargs='+',
 						dest='orthfiles', metavar='FILE',
-						help='Ortholog/Collinearity files')
+						help='Ortholog/Collinearity files for orthologous relationships')
 	target.add_argument('-t', '-sptree', required=t_required, type=str,
 						dest='sptreefile', metavar='FILE',
 						help='Species tree file (Newick)')

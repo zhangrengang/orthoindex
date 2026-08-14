@@ -266,7 +266,8 @@ def _draw_cladogram(ax, sptree, sps):
 		y = sum(child_ys) / len(child_ys)
 		pos[node.name] = y
 		for c, cy in zip(node.children, child_ys):
-			ax.plot([pos[node.name], pos[node.name], _xpos(c)], [pos[node.name], cy, cy],
+			ax.plot([_xpos(node), _xpos(node), _xpos(c)],
+					[pos[node.name], cy, cy],
 					color='k', lw=0.8)
 		return y
 
@@ -291,6 +292,8 @@ def _draw_cladogram(ax, sptree, sps):
 	ax.set_xlim(-_xpos(root)-1, 0)
 	ax.set_ylim(-0.5, len(leaves)-0.5)
 	ax.invert_yaxis()
+	ax.set_xticks([])
+	ax.set_yticks([])
 	ax.axis('off')
 
 

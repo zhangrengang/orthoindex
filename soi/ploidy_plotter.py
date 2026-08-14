@@ -208,7 +208,7 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	if sptree:
 		# top row: tree + heatmap (same height, so rows align); bottom row: colorbar
 		gs = gridspec.GridSpec(2, 2, width_ratios=[2, 6],
-							   height_ratios=[n_ref, 0.5], wspace=0.005, hspace=0.1)
+							   height_ratios=[n_ref, 0.5], wspace=0.0, hspace=0.1)
 		ax_tree = fig.add_subplot(gs[0, 0])
 		_draw_cladogram(ax_tree, sptree, refs)
 		ax_hm = fig.add_subplot(gs[0, 1])
@@ -219,13 +219,14 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	cmap = plt.get_cmap('YlOrRd')
 	ax_hm.imshow(M, aspect='auto', cmap=cmap, vmin=0, vmax=1,
 				 interpolation='nearest')
+	tick_fs = max(6, min(12, 240 // max(max(n_ref, n_qry), 1)))
 	ax_hm.set_xticks(range(n_qry))
-	ax_hm.set_xticklabels(qry, rotation=90, fontsize=6)
+	ax_hm.set_xticklabels(qry, rotation=90, fontsize=tick_fs)
 	ax_hm.xaxis.tick_top()  # column labels on top
 	ax_hm.tick_params(axis='x', which='both', top=True, bottom=False,
 					  labeltop=True, labelbottom=False)
 	ax_hm.set_yticks(range(n_ref))
-	ax_hm.set_yticklabels(refs, fontsize=6)
+	ax_hm.set_yticklabels(refs, fontsize=tick_fs)
 	ax_hm.yaxis.tick_right()  # row labels on the right
 	ax_hm.set_xlabel('Query')
 	if not sptree:

@@ -316,7 +316,7 @@ def _draw_cladogram(ax, sptree, sps):
 					color='k', lw=0.8)
 	min_x = min(_xpos(n) for n in tree.traverse())
 	ax.set_xlim(min_x - 0.5, 0)
-	ax.invert_xaxis()  # root on the left, tips on the right (aligned)
+	# no invert: root (most negative) on the left, tips (x=0) on the right
 	ax.set_ylim(-0.5, len(leaves)-0.5)
 	ax.invert_yaxis()  # leaf 0 at top, matching imshow origin='upper' row 0
 	ax.set_xticks([])

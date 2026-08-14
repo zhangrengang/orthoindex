@@ -243,12 +243,13 @@ def parse_collinearity(collinearity, refs, qry, min_block=10, min_same_block=25,
 			continue
 		sp1, sp2 = rc.species
 		if sp1 == sp2 and sp1 in qry_set:
-			for ref in refs:
-				d_ortholog[ref][sp1].add_edges_from(rc.pairs)
+			# self-synteny edges only matter when ref == sp
+			if sp1 in ref_set:
+				d_ortholog[sp1][sp1].add_edges_from(rc.pairs)
 			continue
-		elif sp1 in ref_set and sp2 in qry_set:
+		if sp1 in ref_set and sp2 in qry_set:
 			d_ortholog[sp1][sp2].add_edges_from(rc.pairs)
-		elif sp2 in ref_set and sp1 in qry_set:
+		if sp2 in ref_set and sp1 in qry_set:
 			d_ortholog[sp2][sp1].add_edges_from(rc.pairs)
 	return d_ortholog
 

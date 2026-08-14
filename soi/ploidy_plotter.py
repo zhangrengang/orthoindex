@@ -246,81 +246,31 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 
 
 def _draw_cladogram(ax, sptree, sps):
-	"""Draw a simplified cladogram (topology only) aligned to heatmap rows.
+	"""Draw a cladogram with Bio.Phylo (vector, tip-aligned) on the given axes.
 
-	The tree is pruned to the given species subset before drawing.
+	Leaf order from the pruned tree matches the heatmap row order (both are
+	the original tree leaf order filtered to the subset).
 	"""
-	from .tree import number_nodes
-	tree = number_nodes(sptree)
-	# leaf order must match the heatmap rows: original tree leaf order
-	# (prune can reorder leaves), filtered to the subset
-	order = [sp for sp in tree.get_leaf_names() if sp in set(sps)]
-	# prune to the subset, then collapse single-child nodes
-	keep = [sp for sp in tree.get_leaf_names() if sp in set(sps)]
-	missing = sorted(set(sps) - set(tree.get_leaf_names()))
-	if missing:
-		raise ValueError('species not in tree: {}'.format(', '.join(missing)))
-	tree.prune(keep, preserve_branch_length=False)
-	# collapse single-child internal nodes left after pruning
-	for node in list(tree.traverse('postorder')):
-		if not node.is_leaf() and not node.is_root() and len(node.children) == 1:
-			node.delete(prevent_nondicotomic=False)
-	leaf_idx = {sp: i for i, sp in enumerate(order)}
-	leaves = order
-	pos = {}  # node -> y coordinate (leaf index for leaves)
-
-	def _layout(node, lo, hi):
-		if node.is_leaf():
-			pos[node.name] = leaf_idx.get(node.name, (lo+hi)/2)
-			return pos[node.name]
-		child_ys = [_layout(c, lo, hi) for c in node.children]
-		y = sum(child_ys) / len(child_ys)
-		pos[node.name] = y
-		for c, cy in zip(node.children, child_ys):
-			ax.plot([_xpos(node), _xpos(node), _xpos(c)],
-					[pos[node.name], cy, cy],
-					color='k', lw=0.8)
-		return y
-
-	def _xpos(node):
-		# x by depth from root; leaves pinned to the right edge (tip-aligned)
-		if node.is_leaf():
-			return 0.0
-		d = 0
-		n = node
-		while n.up:
-			d += 1
-			n = n.up
-		if d == 0:
-			# root: leftmost, but not colliding with tips (x=0)
-			return -float(max_depth) - 1
-		return -d
-
-	root = tree
-	# max depth of internal nodes (for root placement)
-	max_depth = 0
-	for n in tree.traverse():
-		d = 0
-		nn = n
-		while nn.up:
-			d += 1
-			nn = nn.up
-		max_depth = max(max_depth, d)
-	_layout(root, 0, len(leaves)-1)
-	# vertical lines: connect parent x to child x at child y
-	for node in tree.traverse():
-		if node.is_leaf() or node.is_root():
-			continue
-		for c in node.children:
-			ax.plot([_xpos(node), _xpos(c)], [pos[c.name], pos[c.name]],
-					color='k', lw=0.8)
-	min_x = min(_xpos(n) for n in tree.traverse())
-	ax.set_xlim(min_x - 0.5, 0)
-	# no invert: root (most negative) on the left, tips (x=0) on the right
-	ax.set_ylim(-0.5, len(leaves)-0.5)
-	ax.invert_yaxis()  # leaf 0 at top, matching imshow origin='upper' row 0
+	from Bio import Phylo
+	tree = Phylo.read(sptree, 'newick')
+	keep = set(sps)
+	for t in list(tree.get_terminals()):
+		if t.name not in keep:
+			tree.prune(t)
+	# collapse single-child non-root nodes
+	changed = True
+	while changed:
+		changed = False
+		for n in tree.get_nonterminals():
+			if n is not tree.root and len(n.clades) == 1:
+				n.collapse()
+				changed = True
+	Phylo.draw(tree, axes=ax, do_show=False, show_confidence=False,
+			   label_func=lambda x: x.name if x.is_terminal() else '')
 	ax.set_xticks([])
 	ax.set_yticks([])
+	for sp in ax.get_xticklabels():
+		sp.set_visible(False)
 	ax.axis('off')
 
 

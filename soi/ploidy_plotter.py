@@ -267,6 +267,20 @@ def _draw_cladogram(ax, sptree, sps):
 				changed = True
 	Phylo.draw(tree, axes=ax, do_show=False, show_confidence=False,
 			   label_func=lambda x: '')
+	# dashed tip-alignment lines: from each tip to the rightmost tip x.
+	# tip x = sum of branch lengths from root; y = terminal index order.
+	tips = tree.get_terminals()
+	tip_x = {}
+	for t in tips:
+		x = 0.0
+		for cl in tree.get_path(t):
+			x += cl.branch_length
+		tip_x[t] = x
+	x_end = max(tip_x.values())
+	for i, t in enumerate(tips):
+		# Phylo.draw y is 1-based (tip 0 at y=1, top since ylim inverted)
+		ax.plot([tip_x[t], x_end], [i + 1, i + 1],
+				color='0.6', lw=0.6, ls=':', zorder=0)
 	ax.set_xticks([])
 	ax.set_yticks([])
 	for sp in ax.get_xticklabels():

@@ -310,6 +310,10 @@ def plot_bars(data, titles, ax=None, outfigs=None, nrow=1, ncol=1, fontsize=10,
 	if output_depth:
 		save_depth_table(data, titles, output_depth=output_depth, 
 			mode=mode, max_ploidy=max_ploidy, ref=ref)
+		if output_depth != 'stdout':
+			logger.info('Depth table written to {}'.format(output_depth))
+		else:
+			logger.info('Depth table written to stdout')
 	# bars show depth >= 1 only; depth-0 windows reported in the table
 	data = [np.array([row for row in arr if row[0] >= 1]) if len(arr) else arr
 			for arr in data]
@@ -354,6 +358,8 @@ def plot_bars(data, titles, ax=None, outfigs=None, nrow=1, ncol=1, fontsize=10,
 				root, ext = os.path.splitext(outfig)
 				outfig = '{}.{}{}'.format(root, ref, ext)
 			plt.savefig(outfig)
+		logger.info('Bar plots written to {}'.format(
+			', '.join(os.path.basename(f) for f in outfigs)))
 	else:
 		return ax
 def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_ploidy=10):

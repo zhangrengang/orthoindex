@@ -110,15 +110,17 @@ def plot_fold(collinearity, gff, ref, qry, **kargs):
 	refs = [ref] if isinstance(ref, str) else ref
 	d_ortholog = parse_collinearity(collinearity, refs, qry, **kargs)
 	d_coord_path, d_coord_graph = parse_gff(gff, refs + qry)
-	for i, ref in enumerate(refs):
-		kargs['mode'] = 'w' if i == 0 else 'a'
-		data = []
+	all_data = []
+	all_titles = []
+	for ref in refs:
 		for sp in qry:
 			d_fold = get_ploidy(d_coord_path[ref], d_coord_graph[ref],
 								d_coord_graph[sp], d_ortholog[ref][sp],
 								**kargs)
-			data += [np.array(sorted(d_fold.items()))]
-		plot_bars(data, ref=ref, **kargs)
+			all_data.append(np.array(sorted(d_fold.items())))
+			all_titles.append('{} vs {}'.format(ref, sp))
+	kargs['titles'] = all_titles
+	plot_bars(all_data, ref=None, **kargs)
 	return
 
 
@@ -195,7 +197,11 @@ def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_pl
     
     # 2. 填充每个物种的数据
     for i, arr in enumerate(data):
-        species = titles[i]
+        title = titles[i]
+        if ref is None and ' vs ' in title:
+            ref_i, species = title.split(' vs ', 1)
+        else:
+            ref_i, species = ref, title
         # 初始化当前物种的计数器
         counts = {p: 0 for p in range(0, max_ploidy + 1)}
         
@@ -206,7 +212,7 @@ def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_pl
                 counts[depth] += count
         
         # 构造当前行：物种名 + 各深度的计数
-        row = [str(ref), species] + [str(counts[p]) for p in range(0, max_ploidy + 1)]
+        row = [str(ref_i), species] + [str(counts[p]) for p in range(0, max_ploidy + 1)]
         rows.append(row)
 
     # 3. 拼接为 TSV 文本

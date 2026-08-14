@@ -225,10 +225,21 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 
 
 def _draw_cladogram(ax, sptree, sps):
-	"""Draw a simplified cladogram (topology only) aligned to heatmap rows."""
+	"""Draw a simplified cladogram (topology only) aligned to heatmap rows.
+
+	The tree is pruned to the given species subset before drawing.
+	"""
 	from .tree import number_nodes
 	tree = number_nodes(sptree)
-	leaves = [l for l in tree.get_leaf_names() if l in sps]
+	# prune to the subset: drop leaves not in sps, then collapse single-child nodes
+	keep = set(sps)
+	for node in list(tree.traverse()):
+		if node.is_leaf() and node.name not in keep:
+			node.detach()
+	for node in list(tree.traverse('postorder')):
+		if not node.is_leaf() and not node.is_root() and len(node.children) == 1:
+			node.delete(prevent_nondicotomic=False)
+	leaves = [l for l in tree.get_leaf_names()]
 	leaf_idx = {sp: i for i, sp in enumerate(leaves)}
 	pos = {}  # node -> y coordinate (leaf index for leaves)
 

@@ -172,8 +172,8 @@ def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_pl
     """
     每行一个物种，列为不同深度 (1 to max_ploidy)
     """
-    # 1. 构建表头: Species, 1, 2, 3, ..., 10+
-    header = ['Reference', "Query"] + [str(i) for i in range(1, max_ploidy)] + [f"{max_ploidy}+"]
+    # 1. 构建表头: Species, 0, 1, 2, 3, ..., 10+
+    header = ['Reference', "Query"] + [str(i) for i in range(0, max_ploidy)] + [f"{max_ploidy}+"]
     
     rows = [header]
     
@@ -181,7 +181,7 @@ def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_pl
     for i, arr in enumerate(data):
         species = titles[i]
         # 初始化当前物种的计数器
-        counts = {p: 0 for p in range(1, max_ploidy + 1)}
+        counts = {p: 0 for p in range(0, max_ploidy + 1)}
         
         for depth, count in arr:
             if depth >= max_ploidy:
@@ -190,7 +190,7 @@ def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_pl
                 counts[depth] += count
         
         # 构造当前行：物种名 + 各深度的计数
-        row = [str(ref), species] + [str(counts[p]) for p in range(1, max_ploidy + 1)]
+        row = [str(ref), species] + [str(counts[p]) for p in range(0, max_ploidy + 1)]
         rows.append(row)
 
     # 3. 拼接为 TSV 文本
@@ -278,6 +278,10 @@ def get_ploidy(ref_coord_paths, ref_coord_graph, qry_coord_graph, rq_ortholog_gr
 				if rq_ortholog_graph.has_node(gene):
 					orthologs += rq_ortholog_graph.neighbors(gene)
 			if len(orthologs) < 2:  # ploidy=0
+				try:
+					d_fold[0] += 1
+				except KeyError:
+					d_fold[0] = 1
 				continue
 			qry_clusters = cluster_genes(orthologs, qry_coord_graph, **kargs)
 			qry_blocks = list(nx.connected_components(qry_clusters))

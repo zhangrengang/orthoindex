@@ -326,9 +326,6 @@ soi cluster -s collinearity.ortho -prefix cluster
 
 # exclude outgroup species that do not share the INGROUP-specific WGD event
 soi cluster -s collinearity.ortho -outgroup XXX YYY
-
-# keep paralogs (same-species gene pairs) in the clustering
-soi cluster -s collinearity.ortho -prefix cluster -inparalog
 ```
 The defualt output file is `cluster.mcl`, with the orthogroup format of legacy OrthoMCL. Same-species gene pairs (paralogs) are excluded by default; `-inparalog` keeps them.
 

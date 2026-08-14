@@ -208,7 +208,7 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	if sptree:
 		# top row: tree + heatmap (same height, so rows align); bottom row: colorbar
 		gs = gridspec.GridSpec(2, 2, width_ratios=[2, 6],
-							   height_ratios=[n_ref, 0.5], wspace=0.0, hspace=0.1)
+							   height_ratios=[n_ref, 0.5], wspace=0.005, hspace=0.1)
 		ax_tree = fig.add_subplot(gs[0, 0])
 		_draw_cladogram(ax_tree, sptree, refs)
 		ax_hm = fig.add_subplot(gs[0, 1])
@@ -268,6 +268,7 @@ def _draw_cladogram(ax, sptree, sps):
 				changed = True
 	Phylo.draw(tree, axes=ax, do_show=False, show_confidence=False,
 			   label_func=lambda x: '')
+	# Phylo.draw leaves ~25% right margin; tighten so tips sit at the edge
 	# dashed tip-alignment lines: from each tip to the rightmost tip x.
 	# tip x = sum of branch lengths from root; y = terminal index order.
 	tips = tree.get_terminals()
@@ -278,6 +279,7 @@ def _draw_cladogram(ax, sptree, sps):
 			x += cl.branch_length
 		tip_x[t] = x
 	x_end = max(tip_x.values())
+	ax.set_xlim(ax.get_xlim()[0], x_end)
 	for i, t in enumerate(tips):
 		# Phylo.draw y is 1-based (tip 0 at y=1, top since ylim inverted)
 		ax.plot([tip_x[t], x_end], [i + 1, i + 1],

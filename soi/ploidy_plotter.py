@@ -204,11 +204,11 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 		qry = [q for q in order if q in qry]
 	M = np.array([[ratio.get((r, q), 0.0) for q in qry] for r in refs])
 	n_ref, n_qry = M.shape
-	fig = plt.figure(figsize=(max(8, 0.4*n_qry + 3), max(5, 0.5*n_ref + 2)))
+	fig = plt.figure(figsize=(max(8, 0.4*n_qry + 3), max(6, 0.8*n_ref + 2)))
 	if sptree:
 		# top row: tree + heatmap (same height, so rows align); bottom row: colorbar
 		gs = gridspec.GridSpec(2, 2, width_ratios=[2, 6],
-							   height_ratios=[n_ref, 0.5], wspace=0.02, hspace=0.1)
+							   height_ratios=[n_ref, 0.5], wspace=0.005, hspace=0.1)
 		ax_tree = fig.add_subplot(gs[0, 0])
 		_draw_cladogram(ax_tree, sptree, refs)
 		ax_hm = fig.add_subplot(gs[0, 1])

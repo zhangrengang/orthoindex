@@ -129,6 +129,9 @@ def plot_bars(data, titles, ax=None, outfigs=None, nrow=1, ncol=1, fontsize=10,
 	if output_depth:
 		save_depth_table(data, titles, output_depth=output_depth, 
 			mode=mode, max_ploidy=max_ploidy, ref=ref)
+	# bars show depth >= 1 only; depth-0 windows reported in the table
+	data = [np.array([row for row in arr if row[0] >= 1]) if len(arr) else arr
+			for arr in data]
 	if as_proportion:
 		ylabel = ylabel.replace('Number', 'Proportion', 1) if ylabel.startswith('Number') else 'Proportion of ' + ylabel
 	if ax is None:

@@ -8,6 +8,7 @@ import numpy as np
 import itertools
 import matplotlib.pyplot as plt
 from .mcscan import XCollinearity, XGff
+from .RunCmdsMP import logger
 import matplotlib as mpl
 
 mpl.use("Agg")
@@ -55,6 +56,8 @@ def ploidy_args(parser):
 						help="species tree: use its leaf species as ref/qry set")
 	parser.add_argument('--heatmap', action='store_true', default=False, dest='heatmap',
 						help="output ref x qry depth-ratio heatmap with tree on the left")
+	parser.add_argument('--threads', metavar='INT', type=int, default=1, dest='threads',
+						help="number of parallel processes for ref x qry depth calculation [default=%(default)s]")
 	parser.add_argument('-pre', '-prefix', metavar='PREFIX', type=str,
 						dest='output', default=None, help="output prefix")
 	parser.add_argument('--format', metavar='figure file out format', action='append',
@@ -128,28 +131,51 @@ def main(args):
 	plot_fold(**args.__dict__)
 
 
+# global read-only context for parallel workers (set in plot_fold; fork inherits)
+_PLOIDY_CTX = {}
+
+
+def _ploidy_worker(pair):
+	ref, sp = pair
+	ctx = _PLOIDY_CTX
+	d_fold = get_ploidy(ctx['paths'][ref], ctx['graphs'][ref],
+						ctx['graphs'][sp], ctx['orth'][ref][sp],
+						**ctx['kargs'])
+	return ref, sp, d_fold
+
+
 def plot_fold(collinearity, gff, ref, qry, **kargs):
 	refs = [ref] if isinstance(ref, str) else ref
 	d_ortholog = parse_collinearity(collinearity, refs, qry, **kargs)
 	d_coord_path, d_coord_graph = parse_gff(gff, refs + qry)
+	threads = kargs.get('threads', 1)
+	pairs = [(r, s) for r in refs for s in qry]
+	logger.info('Computing synteny depth for {} species pairs ({} threads)'.format(
+		len(pairs), threads))
+	_PLOIDY_CTX.update(paths=d_coord_path, graphs=d_coord_graph,
+					   orth=d_ortholog, kargs=kargs)
+	if threads > 1 and len(pairs) > 1:
+		import multiprocessing as mp
+		with mp.Pool(threads) as pool:
+			results = pool.map(_ploidy_worker, pairs)
+	else:
+		results = [_ploidy_worker(p) for p in pairs]
+	_PLOIDY_CTX.clear()
+	logger.info('Computed depth for {} species pairs'.format(len(results)))
 	all_data = []
 	all_titles = []
 	ratio = {}  # (ref, qry) -> depth ratio (>=2 inter-species, >=1 self)
-	for ref in refs:
-		for sp in qry:
-			d_fold = get_ploidy(d_coord_path[ref], d_coord_graph[ref],
-								d_coord_graph[sp], d_ortholog[ref][sp],
-								**kargs)
-			all_data.append(np.array(sorted(d_fold.items())))
-			all_titles.append('{} vs {}'.format(ref, sp))
-			total = sum(d_fold.values())
-			if total > 0:
-				if ref == sp:
-					ratio[(ref, sp)] = sum(c for d, c in d_fold.items() if d >= 1) / total
-				else:
-					ratio[(ref, sp)] = sum(c for d, c in d_fold.items() if d >= 2) / total
+	for ref, sp, d_fold in results:
+		all_data.append(np.array(sorted(d_fold.items())))
+		all_titles.append('{} vs {}'.format(ref, sp))
+		total = sum(d_fold.values())
+		if total > 0:
+			if ref == sp:
+				ratio[(ref, sp)] = sum(c for d, c in d_fold.items() if d >= 1) / total
 			else:
-				ratio[(ref, sp)] = 0.0
+				ratio[(ref, sp)] = sum(c for d, c in d_fold.items() if d >= 2) / total
+		else:
+			ratio[(ref, sp)] = 0.0
 	if kargs.get('heatmap'):
 		_plot_heatmap(ratio, refs, qry, kargs)
 	kargs['titles'] = all_titles
@@ -194,6 +220,8 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 		root, ext = os.path.splitext(outfig)
 		fig.savefig('{}.heatmap{}'.format(root, ext))
 	plt.close(fig)
+	logger.info('Depth-ratio heatmap written to {}.heatmap.pdf/png'.format(
+		os.path.splitext(outfigs[0])[0]))
 
 
 def _draw_cladogram(ax, sptree, sps):
@@ -350,13 +378,17 @@ def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_pl
 def parse_collinearity(collinearity, refs, qry, min_block=10, min_same_block=25, **kargs):
 	if isinstance(refs, str):
 		refs = [refs]
+#	logger.info('Building ortholog graphs for {} refs x {} qry species'.format(
+#		len(refs), len(qry)))
 	d_ortholog = {ref: {sp: nx.Graph() for sp in qry} for ref in refs}
 	ref_set, qry_set = set(refs), set(qry)
+	n_blocks = 0
 	for rc in XCollinearity(collinearity):
 		if rc.chr1 == rc.chr2 and rc.N < min_same_block:
 			continue
 		if min_block is not None and rc.N < min_block:
 			continue
+		n_blocks += 1
 		sp1, sp2 = rc.species
 		if sp1 == sp2 and sp1 in qry_set:
 			# self-synteny edges only matter when ref == sp
@@ -367,6 +399,7 @@ def parse_collinearity(collinearity, refs, qry, min_block=10, min_same_block=25,
 			d_ortholog[sp1][sp2].add_edges_from(rc.pairs)
 		if sp2 in ref_set and sp1 in qry_set:
 			d_ortholog[sp2][sp1].add_edges_from(rc.pairs)
+#	logger.info('Parsed {} syntenic blocks'.format(n_blocks))
 	return d_ortholog
 
 

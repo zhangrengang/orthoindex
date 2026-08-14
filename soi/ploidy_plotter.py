@@ -280,9 +280,11 @@ def _draw_cladogram(ax, sptree, sps):
 		tip_x[t] = x
 	x_end = max(tip_x.values())
 	ax.set_xlim(ax.get_xlim()[0], x_end)
+	n = len(tips)
 	for i, t in enumerate(tips):
-		# Phylo.draw y is 1-based (tip 0 at y=1, top since ylim inverted)
-		ax.plot([tip_x[t], x_end], [i + 1, i + 1],
+		# Phylo layout y = n - i (tip 0 at y=n, top after y-invert);
+		# draw dashed alignment line at that y
+		ax.plot([tip_x[t], x_end], [n - i, n - i],
 				color='0.6', lw=0.6, ls=':', zorder=0)
 	ax.set_xticks([])
 	ax.set_yticks([])

@@ -204,14 +204,18 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 		qry = [q for q in order if q in qry]
 	M = np.array([[ratio.get((r, q), 0.0) for q in qry] for r in refs])
 	n_ref, n_qry = M.shape
-	fig = plt.figure(figsize=(max(6, 0.35*n_qry + 2), max(4, 0.35*n_ref)))
+	fig = plt.figure(figsize=(max(8, 0.4*n_qry + 3), max(5, 0.4*n_ref + 1)))
 	if sptree:
-		gs = gridspec.GridSpec(1, 2, width_ratios=[1, 6], wspace=0.05)
-		ax_tree = fig.add_subplot(gs[0])
+		# top row: tree + heatmap (same height, so rows align); bottom row: colorbar
+		gs = gridspec.GridSpec(2, 2, width_ratios=[2, 6],
+							   height_ratios=[n_ref, 1], hspace=0.4)
+		ax_tree = fig.add_subplot(gs[0, 0])
 		_draw_cladogram(ax_tree, sptree, refs)
-		ax_hm = fig.add_subplot(gs[1])
+		ax_hm = fig.add_subplot(gs[0, 1])
+		cax = fig.add_subplot(gs[1, 1])
 	else:
 		ax_hm = fig.add_subplot(111)
+		cax = ax_hm
 	cmap = plt.get_cmap('YlOrRd')
 	ax_hm.imshow(M, aspect='auto', cmap=cmap, vmin=0, vmax=1,
 				 interpolation='nearest')
@@ -226,8 +230,7 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 	ax_hm.set_xlabel('Query')
 	ax_hm.set_ylabel('Reference')
 	fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1), cmap=cmap),
-				 ax=ax_hm, label='depth ratio', orientation='horizontal',
-				 pad=0.05, shrink=0.5, anchor=(0.0, 0.5))
+				 cax=cax, label='depth ratio', orientation='horizontal')
 	for outfig in outfigs:
 		root, ext = os.path.splitext(outfig)
 		fig.savefig('{}.heatmap{}'.format(root, ext))
@@ -291,9 +294,11 @@ def _draw_cladogram(ax, sptree, sps):
 		for c in node.children:
 			ax.plot([_xpos(node), _xpos(c)], [pos[c.name], pos[c.name]],
 					color='k', lw=0.8)
-	ax.set_xlim(-_xpos(root)-1, 0)
+	min_x = min(_xpos(n) for n in tree.traverse())
+	ax.set_xlim(min_x - 0.5, 0)
+	ax.invert_xaxis()  # root on the left, leaves on the right
 	ax.set_ylim(-0.5, len(leaves)-0.5)
-	ax.invert_yaxis()
+	ax.invert_yaxis()  # leaf 0 at top, matching imshow origin='upper' row 0
 	ax.set_xticks([])
 	ax.set_yticks([])
 	ax.axis('off')

@@ -266,7 +266,7 @@ def _draw_cladogram(ax, sptree, sps):
 				n.collapse()
 				changed = True
 	Phylo.draw(tree, axes=ax, do_show=False, show_confidence=False,
-			   label_func=lambda x: x.name if x.is_terminal() else '')
+			   label_func=lambda x: '')
 	ax.set_xticks([])
 	ax.set_yticks([])
 	for sp in ax.get_xticklabels():

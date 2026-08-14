@@ -243,8 +243,10 @@ def _draw_cladogram(ax, sptree, sps):
 	"""
 	from .tree import number_nodes
 	tree = number_nodes(sptree)
-	# prune to the subset, then collapse single-child nodes (prune keeps
-	# topology only when all kept leaves are present)
+	# leaf order must match the heatmap rows: original tree leaf order
+	# (prune can reorder leaves), filtered to the subset
+	order = [sp for sp in tree.get_leaf_names() if sp in set(sps)]
+	# prune to the subset, then collapse single-child nodes
 	keep = [sp for sp in tree.get_leaf_names() if sp in set(sps)]
 	missing = sorted(set(sps) - set(tree.get_leaf_names()))
 	if missing:
@@ -254,8 +256,8 @@ def _draw_cladogram(ax, sptree, sps):
 	for node in list(tree.traverse('postorder')):
 		if not node.is_leaf() and not node.is_root() and len(node.children) == 1:
 			node.delete(prevent_nondicotomic=False)
-	leaves = [l for l in tree.get_leaf_names()]
-	leaf_idx = {sp: i for i, sp in enumerate(leaves)}
+	leaf_idx = {sp: i for i, sp in enumerate(order)}
+	leaves = order
 	pos = {}  # node -> y coordinate (leaf index for leaves)
 
 	def _layout(node, lo, hi):

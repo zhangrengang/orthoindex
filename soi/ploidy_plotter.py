@@ -283,7 +283,9 @@ def _draw_cladogram(ax, sptree, sps):
 		return y
 
 	def _xpos(node):
-		# x by depth from root
+		# x by depth from root; leaves pinned to the right edge (tip-aligned)
+		if node.is_leaf():
+			return 0.0
 		d = 0
 		n = node
 		while n.up:
@@ -302,7 +304,7 @@ def _draw_cladogram(ax, sptree, sps):
 					color='k', lw=0.8)
 	min_x = min(_xpos(n) for n in tree.traverse())
 	ax.set_xlim(min_x - 0.5, 0)
-	ax.invert_xaxis()  # root on the left, leaves on the right
+	ax.invert_xaxis()  # root on the left, tips on the right (aligned)
 	ax.set_ylim(-0.5, len(leaves)-0.5)
 	ax.invert_yaxis()  # leaf 0 at top, matching imshow origin='upper' row 0
 	ax.set_xticks([])

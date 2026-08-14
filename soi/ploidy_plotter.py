@@ -47,7 +47,7 @@ def ploidy_args(parser):
 	parser.add_argument('-g', '-gff', metavar='FILE', type=str, required=True, nargs='+',
 						dest='gff',
 						help="gene annotation gff file (*.gff, one of MCSCANX/WGDI input)[required]")
-	parser.add_argument('-r', '-ref', metavar='SPECIES', type=str, required=True, dest='ref',
+	parser.add_argument('-r', '-ref', metavar='SPECIES', nargs='+', type=str, required=True, dest='ref',
 						help="reference species [required]")
 	parser.add_argument('-q', '-qry', metavar='SPECIES', nargs='+', type=str, dest='qry',
 						required=True, help="query species [required]")
@@ -82,7 +82,7 @@ def xmain(**kargs):
 
 def main(args):
 #	args = makeArgparse()
-	sps = [args.ref] + args.qry
+	sps = list(args.ref) + args.qry
 	if args.output is None:
 		sps = [x[:2] for x in sps]
 		args.output = 'dp.' + '-'.join(sps) + '_' + str(args.window_size)
@@ -107,18 +107,27 @@ def main(args):
 
 
 def plot_fold(collinearity, gff, ref, qry, **kargs):
-	d_ortholog_graph, d_paralog_graph = parse_collinearity(
-		collinearity, ref, qry, **kargs)
-	d_coord_path, d_coord_graph = parse_gff(gff, [ref]+qry)
-	data = []
-	for sp in qry:
-		d_fold = get_ploidy(d_coord_path[ref], d_coord_graph[ref],
-							d_coord_graph[sp], d_ortholog_graph[sp],
-						#	d_paralog_graph[sp], 
-							**kargs)
-		data += [np.array(sorted(d_fold.items()))]
-		#print(sp, sorted(d_fold.items()))
-	return plot_bars(data, ref=ref, **kargs)
+	refs = [ref] if isinstance(ref, str) else ref
+	d_ortholog = parse_collinearity(collinearity, refs, qry, **kargs)
+	d_coord_path, d_coord_graph = parse_gff(gff, refs + qry)
+	for i, ref in enumerate(refs):
+		kargs['mode'] = 'w' if i == 0 else 'a'
+		data = []
+		for sp in qry:
+			d_fold = get_ploidy(d_coord_path[ref], d_coord_graph[ref],
+								d_coord_graph[sp], d_ortholog[ref][sp],
+								**kargs)
+			data += [np.array(sorted(d_fold.items()))]
+		plot_bars(data, ref=ref, **kargs)
+	return
+
+
+def _outfig(f, ref):
+	"""Insert ref into output filename: dp.XXX.pdf -> dp.{ref}.XXX.pdf."""
+	if ref is None:
+		return f
+	root, ext = os.path.splitext(f)
+	return '{}.{}{}'.format(root, ref, ext)
 
 
 def plot_bars(data, titles, ax=None, outfigs=None, nrow=1, ncol=1, fontsize=10, 
@@ -169,6 +178,9 @@ def plot_bars(data, titles, ax=None, outfigs=None, nrow=1, ncol=1, fontsize=10,
 		plt.suptitle(suptitle)
 	if outfigs is not None:
 		for outfig in outfigs:
+			if ref:
+				root, ext = os.path.splitext(outfig)
+				outfig = '{}.{}{}'.format(root, ref, ext)
 			plt.savefig(outfig)
 	else:
 		return ax
@@ -198,7 +210,11 @@ def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_pl
         rows.append(row)
 
     # 3. 拼接为 TSV 文本
-    output_text = "\n".join(["\t".join(row) for row in rows]) + "\n"
+    rows_text = "\n".join("\t".join(row) for row in rows[1:]) + "\n"
+    if mode == 'w':
+        output_text = "\n".join("\t".join(row) for row in rows) + "\n"
+    else:  # append: skip header
+        output_text = rows_text
 
     # 4. 输出
     if output_depth and output_depth != 'stdout':
@@ -209,29 +225,26 @@ def save_depth_table(data, titles, ref=None, output_depth=None, mode='w', max_pl
 
     return rows
 
-def parse_collinearity(collinearity, ref, qry, min_block=10, min_same_block=25, **kargs):
-	d_ortholog_graph = {}
-	d_paralog_graph = {}
-	for sp in qry:
-		d_ortholog_graph[sp] = nx.Graph()
-		d_paralog_graph[sp] = nx.Graph()
-
-	qry = set(qry)
+def parse_collinearity(collinearity, refs, qry, min_block=10, min_same_block=25, **kargs):
+	if isinstance(refs, str):
+		refs = [refs]
+	d_ortholog = {ref: {sp: nx.Graph() for sp in qry} for ref in refs}
+	ref_set, qry_set = set(refs), set(qry)
 	for rc in XCollinearity(collinearity):
 		if rc.chr1 == rc.chr2 and rc.N < min_same_block:
 			continue
 		if min_block is not None and rc.N < min_block:
 			continue
 		sp1, sp2 = rc.species
-		if sp1 == sp2 and sp1 in qry:
-#			d_paralog_graph[sp1].add_edges_from(rc.pairs)
-			d_ortholog_graph[sp1].add_edges_from(rc.pairs)
+		if sp1 == sp2 and sp1 in qry_set:
+			for ref in refs:
+				d_ortholog[ref][sp1].add_edges_from(rc.pairs)
 			continue
-		elif (sp1 == ref and sp2 in qry):
-			d_ortholog_graph[sp2].add_edges_from(rc.pairs)
-		elif (sp2 == ref and sp1 in qry):
-			d_ortholog_graph[sp1].add_edges_from(rc.pairs)
-	return d_ortholog_graph, d_paralog_graph
+		elif sp1 in ref_set and sp2 in qry_set:
+			d_ortholog[sp1][sp2].add_edges_from(rc.pairs)
+		elif sp2 in ref_set and sp1 in qry_set:
+			d_ortholog[sp2][sp1].add_edges_from(rc.pairs)
+	return d_ortholog
 
 
 def parse_gff(gff, sps):

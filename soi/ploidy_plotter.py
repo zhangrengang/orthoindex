@@ -237,9 +237,8 @@ def _plot_heatmap(ratio, refs, qry, kargs):
 									   cmap=cmap),
 				 cax=cax, label='Proportion of duplicated windows',
 				 orientation='horizontal')
-	if sptree:
-		cax.set_position([cax.get_position().x0, cax.get_position().y0,
-						  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
+	cax.set_position([cax.get_position().x0, cax.get_position().y0,
+					  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
 	for outfig in outfigs:
 		root, ext = os.path.splitext(outfig)
 		fig.savefig('{}.heatmap{}'.format(root, ext), bbox_inches='tight')

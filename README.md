@@ -226,7 +226,33 @@ soi depth -s collinearity.ortho -g ../all_species_gene.gff -r Vitis_vinifera -q 
 # specify window size and step:
 soi depth -s collinearity.ortho -g ../all_species_gene.gff -r Vitis_vinifera -q Daucus_carota Angelica_sinensis Apium_graveolens --window_size 60 --window_step 1
 
+# multiple references (ref x query combinations in one figure):
+soi depth -s collinearity.ortho -g ../all_species_gene.gff -r Vitis_vinifera Ginkgo_biloba -q Daucus_carota Angelica_sinensis
+
+# use a species tree: leaf species become ref/qry (or subset with -r/-q)
+soi depth -s collinearity.ortho -g ../all_species_gene.gff -t species.tree --window_size 50
+
+# ref x qry duplicated-window proportion heatmap (tree drawn on the left)
+soi depth -s collinearity.ortho -g ../all_species_gene.gff -t species.tree --heatmap
+
+# parallel depth computation over species pairs
+soi depth -s collinearity.ortho -g ../all_species_gene.gff -t species.tree --heatmap --threads 22
+
+# skip per-pair bar plots (heatmap only)
+soi depth -s collinearity.ortho -g ../all_species_gene.gff -t species.tree --heatmap --no-bars
 ```
+
+Notes:
+- `-r`/`-q` may be omitted; if only one is given it is copied to the other,
+  and if both are omitted the species tree (`-t`) supplies the full set.
+  `-r`/`-q` entries must be leaves of the tree (otherwise an error is raised).
+- `--heatmap` produces `<prefix>.heatmap.pdf/png`: rows/columns are ref/query
+  species ordered by tree topology, the species tree (cladogram) is drawn on the
+  left, and each cell is the proportion of windows with synteny depth >= 2
+  (>= 1 for self comparisons). The colorbar label is "Proportion of duplicated windows".
+- `--threads N` parallelizes the ref x query depth computation (multiprocessing).
+- `--output_depth <file|stdout>` writes the per-pair depth table including the
+  0-depth column.
 
 #### `retention` ####
 The subcommand `retention` computes gene retention rate (syntenic genes / total genes)

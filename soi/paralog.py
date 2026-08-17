@@ -188,8 +188,25 @@ class ParalogIndexer:
 			internal = [n.name for n in tree.traverse() if not n.is_leaf()]
 			leaves = tree.get_leaf_names()[::-1]  # reverse: outgroups first
 			tree_order = internal + leaves
-			branches = [b for b in tree_order if b in self._branch_pairs]
+			# 列所有物种树 branch（含没旁系的，全 0 也占一列，别缺列）；树外 branch 兜底
+			branches = list(tree_order)
 			branches += sorted(set(self._branch_pairs) - set(branches))
+			# --species 时只保留该物种相关的 branch（该物种 leaf + 含该物种的内部节点）
+			if self.species:
+				sp_set = set(self.species)
+				keep = []
+				for b in branches:
+					node = next((n for n in tree.traverse() if n.name == b), None)
+					if node is None:
+						continue
+					if node.is_leaf():
+						if node.name in sp_set:
+							keep.append(b)
+					else:
+						# internal: keep if any descendant leaf species in sp_set
+						if sp_set & set(node.get_leaf_names()):
+							keep.append(b)
+				branches = keep
 		else:
 			branches = sorted(self._branch_pairs)
 		self._pi_branches = branches
@@ -213,7 +230,7 @@ class ParalogIndexer:
 			pi_vector = []
 			for branch in branches:
 				pi, n_paralog = self._compute_pi(block_pairs,
-												 self._branch_pairs[branch])
+												 self._branch_pairs.get(branch, set()))
 				pi_vector.append(pi)
 				if pi > best_pi:
 					best_pi = pi

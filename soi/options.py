@@ -352,9 +352,9 @@ This will use Orthology Index as weight for MCL [default=%(default)s]")
 	parser.add_argument('-m','-method', type=str, default='mcl',
 						dest='method',
 						help="cluster method (mcl, comp) [default=%(default)s]")
-	parser.add_argument('-inparalog', action='store_true', default=False,
+	parser.add_argument('-inparalog', action='store_true', default=True,
 						dest='inparalog',
-						help='Include paralogs (same-species gene pairs) in -s input [default: excluded]')
+						help=argparse.SUPPRESS) #'Include paralogs (same-species gene pairs) in -s input [default: excluded]')
 
 def func_cluster(**kargs):
 	from .mcscan import cluster_by_mcl

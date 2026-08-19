@@ -393,7 +393,7 @@ class ParalogIndexer:
 			ax_line.invert_yaxis()  # match heatmap direction
 			ax_line.set_xlabel('Number of gene pairs', fontsize=9)
 			ax_line.tick_params(axis='y', labelleft=False, left=False, pad=12)
-			ax_line.set_xticks([min(raw_sig + asgn_sig), max(raw_sig + asgn_sig)])
+			# ax_line.set_xticks([min(raw_sig + asgn_sig), max(raw_sig + asgn_sig)])
 			from matplotlib.ticker import AutoMinorLocator
 			ax_line.xaxis.set_minor_locator(AutoMinorLocator())
 			ax_leg.axis('off')
@@ -409,7 +409,7 @@ class ParalogIndexer:
 			cax.set_position([cax.get_position().x0, lg_bbox.y1,
 							  0.4 * cax.get_position().width, 0.02])
 		else:
-			cax.set_position([cax.get_position().x0, cax.get_position().y0,
+			cax.set_position([cax.get_position().x0, cax.get_position().y1-0.02,
 							  0.4 * cax.get_position().width, 0.02])
 		fig.savefig(self.prefix + '.heatmap.pdf', bbox_inches='tight')
 		fig.savefig(self.prefix + '.heatmap.png', dpi=150, bbox_inches='tight')

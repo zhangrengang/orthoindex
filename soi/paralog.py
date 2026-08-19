@@ -400,8 +400,13 @@ class ParalogIndexer:
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
 					 cax=cax, label='BPI', orientation='horizontal')
-		cax.set_position([cax.get_position().x0, cax.get_position().y0,
-						  0.4 * cax.get_position().width, 0.02])
+		if ax_line is not None:
+			leg_pos = ax_leg.get_position()
+			cax.set_position([cax.get_position().x0, leg_pos.y1 - 0.02,
+							  0.4 * cax.get_position().width, 0.02])
+		else:
+			cax.set_position([cax.get_position().x0, cax.get_position().y0,
+							  0.4 * cax.get_position().width, 0.02])
 		fig.savefig(self.prefix + '.heatmap.pdf', bbox_inches='tight')
 		fig.savefig(self.prefix + '.heatmap.png', dpi=150, bbox_inches='tight')
 		plt.close(fig)

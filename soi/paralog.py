@@ -393,16 +393,16 @@ class ParalogIndexer:
 			ax_line.tick_params(axis='y', labelleft=False, left=False)
 			ax_line.set_xticks([min(raw_sig + asgn_sig), max(raw_sig + asgn_sig)])
 			ax_leg.axis('off')
-			ax_leg.legend(ax_line.get_lines(), ['Raw paralog pairs', 'Assigned gene pairs'],
-						  fontsize=7, loc='center', ncol=1)
+			lg = ax_leg.legend(ax_line.get_lines(), ['Raw paralog pairs', 'Assigned gene pairs'],
+							 fontsize=7, loc='center', ncol=1)
 		import matplotlib as mpl
 		fig.tight_layout()
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
 					 cax=cax, label='BPI', orientation='horizontal')
 		if ax_line is not None:
-			leg_pos = ax_leg.get_position()
-			cax.set_position([cax.get_position().x0, leg_pos.y1 - leg_pos.height,
+			lg_bbox = lg.get_window_extent().transformed(fig.transFigure.inverted())
+			cax.set_position([cax.get_position().x0, lg_bbox.y0,
 							  0.4 * cax.get_position().width, 0.02])
 		else:
 			cax.set_position([cax.get_position().x0, cax.get_position().y0,

@@ -391,8 +391,9 @@ class ParalogIndexer:
 			ax_line.plot(asgn_sig, range(len(branches)), 'orange', lw=1.2, alpha=0.8,
 						 label='Assigned gene pairs')
 			ax_line.set_xlabel('Number of gene pairs', fontsize=9)
-			ax_line.tick_params(axis='y', labelleft=False, left=False)
+			ax_line.tick_params(axis='y', labelleft=False, left=False, pad=12)
 			ax_line.set_xticks([min(raw_sig + asgn_sig), max(raw_sig + asgn_sig)])
+			ax_line.minorticks_on()
 			ax_leg.axis('off')
 			lg = ax_leg.legend(ax_line.get_lines(), ['Raw paralog pairs', 'Assigned gene pairs'],
 							 fontsize=7, loc='center', ncol=1)

@@ -323,7 +323,7 @@ class ParalogIndexer:
 		x = np.concatenate([[0.0], np.cumsum(w)])
 
 		fig = plt.figure(figsize=(min(7, max(4, 0.02 * M.shape[0])),
-								min(7, max(3, 0.3 * len(branches)))))
+								min(7, max(3, 0.5 * len(branches)))))
 		cmap = plt.get_cmap('YlOrRd')
 		from matplotlib import gridspec
 		hr = max(1, 0.3 * len(branches))

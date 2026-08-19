@@ -610,6 +610,9 @@ def makeArgs():
 	if len(sys.argv) == 1:
 		parser.print_help(sys.stderr) 
 		sys.exit(1) 
+	elif len(sys.argv) == 2 and sys.argv[1] in subparsers.choices:
+		subparsers.choices[sys.argv[1]].print_help()
+		sys.exit(0)
 	args = parser.parse_args()
 	return args
 

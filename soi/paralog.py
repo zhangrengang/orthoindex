@@ -348,10 +348,12 @@ class ParalogIndexer:
 		tick_fs = max(6, min(12, 240 // max(len(branches), 1)))
 		if ax_line is not None:
 			ax.set_yticklabels([])
+			ax.tick_params(axis='y', left=False, labelleft=False)
 			ax_line.set_yticks(range(len(branches)))
 			ax_line.set_yticklabels(branches, fontsize=tick_fs)
 			ax_line.yaxis.tick_right()  # branch names on the far right
 			ax_line.set_ylabel('Branch', fontsize=15)
+			ax_line.invert_yaxis()  # match heatmap y direction
 		else:
 			ax.set_yticklabels(branches, fontsize=tick_fs)
 			ax.yaxis.tick_right()  # branch names on the right
@@ -365,6 +367,7 @@ class ParalogIndexer:
 			ax.spines['top'].set_visible(False)
 			ax.spines['right'].set_visible(False)
 			ax.spines['left'].set_visible(False)
+			ax.spines['bottom'].set_visible(True)
 		# optional: grey dashed rectangles around blocks assigned to each branch
 		if self.box_branch:
 			from collections import defaultdict
@@ -396,7 +399,7 @@ class ParalogIndexer:
 			ax_line.set_xticks([min(raw_sig + asgn_sig), max(raw_sig + asgn_sig)])
 			ax_leg.axis('off')
 			ax_leg.legend(ax_line.get_lines(), ['Raw paralog pairs', 'Assigned gene pairs'],
-						  fontsize=7, loc='center', ncol=2)
+						  fontsize=7, loc='center', ncol=1)
 		import matplotlib as mpl
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),

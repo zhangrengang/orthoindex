@@ -323,7 +323,7 @@ class ParalogIndexer:
 		x = np.concatenate([[0.0], np.cumsum(w)])
 
 		fig = plt.figure(figsize=(min(7, max(4, 0.02 * M.shape[0])),
-								min(7, max(3, 0.5 * len(branches)))))
+								min(7, max(3, 0.4 * len(branches)))))
 		cmap = plt.get_cmap('YlOrRd')
 		from matplotlib import gridspec
 		hr = max(1, 0.3 * len(branches))
@@ -393,7 +393,8 @@ class ParalogIndexer:
 			ax_line.set_xlabel('Number of gene pairs', fontsize=9)
 			ax_line.tick_params(axis='y', labelleft=False, left=False, pad=12)
 			ax_line.set_xticks([min(raw_sig + asgn_sig), max(raw_sig + asgn_sig)])
-			ax_line.minorticks_on()
+			from matplotlib.ticker import AutoMinorLocator
+			ax_line.xaxis.set_minor_locator(AutoMinorLocator())
 			ax_leg.axis('off')
 			lg = ax_leg.legend(ax_line.get_lines(), ['Raw paralog pairs', 'Assigned gene pairs'],
 							 fontsize=7, loc='center', ncol=1)

@@ -325,16 +325,17 @@ class ParalogIndexer:
 								min(7, max(3, 0.3 * len(branches)))))
 		cmap = plt.get_cmap('YlOrRd')
 		from matplotlib import gridspec
+		hr = max(1, 0.3 * len(branches))
 		if self.line_plot:
 			gs = gridspec.GridSpec(2, 2, width_ratios=[6, 2],
-								   height_ratios=[len(branches), 0.5],
+								   height_ratios=[len(branches), hr],
 								   wspace=0.05, hspace=0.1)
 			ax = fig.add_subplot(gs[0, 0])
 			ax_line = fig.add_subplot(gs[0, 1])
 			ax_leg = fig.add_subplot(gs[1, 1])
 			cax = fig.add_subplot(gs[1, 0])
 		else:
-			gs = gridspec.GridSpec(2, 1, height_ratios=[len(branches), 0.5])
+			gs = gridspec.GridSpec(2, 1, height_ratios=[len(branches), hr])
 			ax = fig.add_subplot(gs[0, 0])
 			cax = fig.add_subplot(gs[1, 0])
 			ax_line = None
@@ -349,9 +350,18 @@ class ParalogIndexer:
 		ax.invert_yaxis()  # branches top-down (first branch at top)
 		ax.set_yticks(range(len(branches)))
 		tick_fs = max(6, min(12, 240 // max(len(branches), 1)))
-		ax.set_yticklabels(branches, fontsize=tick_fs)
-		ax.yaxis.tick_right()  # branch names on the right
-		ax.set_ylabel('Branch', fontsize=15)
+		if ax_line is not None:
+			ax.set_yticklabels([])
+			ax.tick_params(axis='y', left=False, labelleft=False)
+			ax_line.set_yticks(range(len(branches)))
+			ax_line.set_yticklabels(branches, fontsize=tick_fs)
+			ax_line.yaxis.tick_right()  # branch names on the far right
+			ax_line.set_ylabel('Branch', fontsize=15)
+			ax_line.invert_yaxis()  # match heatmap direction
+		else:
+			ax.set_yticklabels(branches, fontsize=tick_fs)
+			ax.yaxis.tick_right()  # branch names on the right
+			ax.set_ylabel('Branch', fontsize=15)
 		ax.set_xticks([])
 		ax.set_xlabel('Synteny', fontsize=15)
 		if ax_line is not None:

@@ -350,23 +350,19 @@ class ParalogIndexer:
 		ax.invert_yaxis()  # branches top-down (first branch at top)
 		ax.set_yticks(range(len(branches)))
 		tick_fs = max(6, min(12, 240 // max(len(branches), 1)))
+		ax.set_ylabel('Branch', fontsize=15)
 		if ax_line is not None:
 			ax.set_yticklabels([])
 			ax.tick_params(axis='y', left=False, labelleft=False)
 			ax_line.set_yticks(range(len(branches)))
 			ax_line.set_yticklabels(branches, fontsize=tick_fs)
 			ax_line.yaxis.tick_right()  # branch names on the far right
-			ax_line.set_ylabel('Branch', fontsize=15)
 			ax_line.invert_yaxis()  # match heatmap direction
 		else:
 			ax.set_yticklabels(branches, fontsize=tick_fs)
 			ax.yaxis.tick_right()  # branch names on the right
-			ax.set_ylabel('Branch', fontsize=15)
 		ax.set_xticks([])
 		ax.set_xlabel('Synteny', fontsize=15)
-		if ax_line is not None:
-			ax_line.set_yticks([])
-			ax_line.tick_params(axis='y', labelleft=False)
 		# optional: grey dashed rectangles around blocks assigned to each branch
 		if self.box_branch:
 			from collections import defaultdict
@@ -400,14 +396,14 @@ class ParalogIndexer:
 			ax_leg.legend(ax_line.get_lines(), ['Raw paralog pairs', 'Assigned gene pairs'],
 						  fontsize=7, loc='center', ncol=1)
 		import matplotlib as mpl
+		fig.tight_layout()
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
 					 cax=cax, label='BPI', orientation='horizontal')
 		cax.set_position([cax.get_position().x0, cax.get_position().y0,
-						  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
-		fig.tight_layout()
-		fig.savefig(self.prefix + '.heatmap.pdf')
-		fig.savefig(self.prefix + '.heatmap.png', dpi=150)
+						  0.4 * cax.get_position().width, 0.02])
+		fig.savefig(self.prefix + '.heatmap.pdf', bbox_inches='tight')
+		fig.savefig(self.prefix + '.heatmap.png', dpi=150, bbox_inches='tight')
 		plt.close(fig)
 		logger.info('Heatmap written to {}.heatmap.pdf/png'.format(self.prefix))
 

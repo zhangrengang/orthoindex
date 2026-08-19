@@ -324,16 +324,19 @@ class ParalogIndexer:
 		fig = plt.figure(figsize=(min(7, max(4, 0.02 * M.shape[0])),
 								min(7, max(3, 0.3 * len(branches)))))
 		cmap = plt.get_cmap('YlOrRd')
-		# with line plot: 2x2 gridspec (heatmap | line_plot / . | legend), share y
+		from matplotlib import gridspec
 		if self.line_plot:
-			from matplotlib import gridspec
 			gs = gridspec.GridSpec(2, 2, width_ratios=[6, 2],
-								   height_ratios=[len(branches), 0.5], wspace=0.05, hspace=0.1)
+								   height_ratios=[len(branches), 0.5],
+								   wspace=0.05, hspace=0.1)
 			ax = fig.add_subplot(gs[0, 0])
-			ax_line = fig.add_subplot(gs[0, 1], sharey=ax)
+			ax_line = fig.add_subplot(gs[0, 1])
 			ax_leg = fig.add_subplot(gs[1, 1])
+			cax = fig.add_subplot(gs[1, 0])
 		else:
-			ax = fig.add_subplot(111)
+			gs = gridspec.GridSpec(2, 1, height_ratios=[len(branches), 0.5])
+			ax = fig.add_subplot(gs[0, 0])
+			cax = fig.add_subplot(gs[1, 0])
 			ax_line = None
 		# transposed: one row per branch, segments = blocks
 		for i, branch_vec in enumerate(M.T):
@@ -346,28 +349,14 @@ class ParalogIndexer:
 		ax.invert_yaxis()  # branches top-down (first branch at top)
 		ax.set_yticks(range(len(branches)))
 		tick_fs = max(6, min(12, 240 // max(len(branches), 1)))
-		if ax_line is not None:
-			ax.set_yticklabels([])
-			ax.tick_params(axis='y', left=False, labelleft=False)
-			ax_line.set_yticks(range(len(branches)))
-			ax_line.set_yticklabels(branches, fontsize=tick_fs)
-			ax_line.yaxis.tick_right()  # branch names on the far right
-			ax_line.set_ylabel('Branch', fontsize=15)
-			ax_line.invert_yaxis()  # match heatmap y direction
-		else:
-			ax.set_yticklabels(branches, fontsize=tick_fs)
-			ax.yaxis.tick_right()  # branch names on the right
-			ax.set_ylabel('Branch', fontsize=15)
+		ax.set_yticklabels(branches, fontsize=tick_fs)
+		ax.yaxis.tick_right()  # branch names on the right
+		ax.set_ylabel('Branch', fontsize=15)
 		ax.set_xticks([])
 		ax.set_xlabel('Synteny', fontsize=15)
 		if ax_line is not None:
-			ax.set_ylabel('')
-			ax_line.spines['top'].set_visible(False)
-			ax_line.spines['right'].set_visible(False)
-			ax.spines['top'].set_visible(False)
-			ax.spines['right'].set_visible(False)
-			ax.spines['left'].set_visible(False)
-			ax.spines['bottom'].set_visible(True)
+			ax_line.set_yticks([])
+			ax_line.tick_params(axis='y', labelleft=False)
 		# optional: grey dashed rectangles around blocks assigned to each branch
 		if self.box_branch:
 			from collections import defaultdict
@@ -395,7 +384,7 @@ class ParalogIndexer:
 			ax_line.plot(asgn_sig, range(len(branches)), 'orange', lw=1.2, alpha=0.8,
 						 label='Assigned gene pairs')
 			ax_line.set_xlabel('Number of gene pairs', fontsize=9)
-			ax_line.tick_params(axis='y', labelleft=False)
+			ax_line.tick_params(axis='y', labelleft=False, left=False)
 			ax_line.set_xticks([min(raw_sig + asgn_sig), max(raw_sig + asgn_sig)])
 			ax_leg.axis('off')
 			ax_leg.legend(ax_line.get_lines(), ['Raw paralog pairs', 'Assigned gene pairs'],
@@ -403,8 +392,9 @@ class ParalogIndexer:
 		import matplotlib as mpl
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
-					 ax=ax, label='BPI', orientation='horizontal',
-					 pad=-0.02, shrink=0.32, aspect=20, anchor=(0.0, 0.5))
+					 cax=cax, label='BPI', orientation='horizontal')
+		cax.set_position([cax.get_position().x0, cax.get_position().y0,
+						  0.4 * cax.get_position().width, 0.4 * cax.get_position().height])
 		fig.tight_layout()
 		fig.savefig(self.prefix + '.heatmap.pdf')
 		fig.savefig(self.prefix + '.heatmap.png', dpi=150)

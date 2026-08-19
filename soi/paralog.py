@@ -330,7 +330,7 @@ class ParalogIndexer:
 		if self.line_plot:
 			gs = gridspec.GridSpec(2, 2, width_ratios=[6, 2],
 								   height_ratios=[len(branches), hr],
-								   wspace=0.05, hspace=0.1)
+								   wspace=0.05, hspace=0.05)
 			ax = fig.add_subplot(gs[0, 0])
 			ax_line = fig.add_subplot(gs[0, 1])
 			ax_leg = fig.add_subplot(gs[1, 1])

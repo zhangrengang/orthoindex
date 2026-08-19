@@ -124,7 +124,7 @@ class ParalogIndexer:
 	def __init__(self, ogfile, orthfiles, sptreefile,
 				 self_synteny=None, min_n=0, gff=None, min_dist=None,
 				 pi_cutoff=0.05, nodes=None, species=None,
-				 prefix='paralog_index', **hog_kargs):
+				 prefix='paralog_index', box_branch=False, **hog_kargs):
 		self.ogfile = ogfile
 		self.orthfiles = orthfiles
 		self.sptreefile = sptreefile
@@ -141,6 +141,7 @@ class ParalogIndexer:
 		self.nodes = nodes
 		self.species = species
 		self.prefix = prefix
+		self.box_branch = box_branch
 		self.hog_kargs = hog_kargs
 
 		# lazy
@@ -335,6 +336,23 @@ class ParalogIndexer:
 		ax.set_ylabel('Branch', fontsize=15)
 		ax.set_xticks([])
 		ax.set_xlabel('Synteny', fontsize=15)
+		# optional: grey dashed rectangles around blocks assigned to each branch
+		if self.box_branch:
+			from collections import defaultdict
+			from matplotlib.patches import Rectangle
+			blocks_by_branch = defaultdict(list)
+			for j, (bid, sp, N, bch, vec) in enumerate(rows):
+				blocks_by_branch[bch].append(j)
+			for bch, cols in blocks_by_branch.items():
+				i = branch_idx.get(bch)
+				if i is None:
+					continue
+				x0 = x[cols[0]]
+				x1 = x[cols[-1] + 1]
+				rect = Rectangle((x0, i - 0.5), x1 - x0, 1.0,
+								 fill=False, edgecolor='0.5', lw=0.6,
+								 linestyle=':', zorder=10)
+				ax.add_patch(rect)
 		import matplotlib as mpl
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),

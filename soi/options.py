@@ -198,6 +198,9 @@ def args_paralog(parser):
 					   dest='heatmap_scale',
 					   help='Scale heatmap row height by block gene count '
 							'(default: uniform rows) [choices: %(choices)s]')
+	g_out.add_argument('--box-branch', action='store_true', default=False,
+					   dest='box_branch',
+					   help='Draw grey dashed rectangles around blocks assigned to each branch in the heatmap')
 
 def func_paralog(**kargs):
 	from .paralog import xmain as paralog_main

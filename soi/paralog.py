@@ -243,7 +243,7 @@ class ParalogIndexer:
 					best_branch = branch
 
 			if best_pi < threshold:
-				best_branch = root
+				best_branch = "Unassigned"
 
 			# store data immediately — rc is a shared mutable object
 			assigned[best_branch].append(
@@ -277,9 +277,10 @@ class ParalogIndexer:
 				rows = []
 		else:
 			# sort by assigned-branch column index, then PI vector (desc);
-			# root-assigned blocks (no paralog signal) go last
+			# Unassigned blocks (no paralog signal) go first
 			rows = sorted(self._pi_rows,
-						  key=lambda r: (branch_idx.get(r[3], len(branches)),
+						  key=lambda r: (0 if r[3] == "Unassigned" else 1,
+										 branch_idx.get(r[3], len(branches)),
 										 tuple(-v for v in r[4])))
 
 		with open(fpath, 'w') as fout:

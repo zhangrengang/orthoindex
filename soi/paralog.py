@@ -402,7 +402,7 @@ class ParalogIndexer:
 					 cax=cax, label='BPI', orientation='horizontal')
 		if ax_line is not None:
 			leg_pos = ax_leg.get_position()
-			cax.set_position([cax.get_position().x0, leg_pos.y1 - 0.02,
+			cax.set_position([cax.get_position().x0, leg_pos.y1,
 							  0.4 * cax.get_position().width, 0.02])
 		else:
 			cax.set_position([cax.get_position().x0, cax.get_position().y0,

@@ -124,7 +124,8 @@ class ParalogIndexer:
 	def __init__(self, ogfile, orthfiles, sptreefile,
 				 self_synteny=None, min_n=0, gff=None, min_dist=None,
 				 pi_cutoff=0.05, nodes=None, species=None,
-				 prefix='paralog_index', box_branch=False, **hog_kargs):
+				 prefix='paralog_index', box_branch=False, line_plot=False,
+				 **hog_kargs):
 		self.ogfile = ogfile
 		self.orthfiles = orthfiles
 		self.sptreefile = sptreefile
@@ -142,6 +143,7 @@ class ParalogIndexer:
 		self.species = species
 		self.prefix = prefix
 		self.box_branch = box_branch
+		self.line_plot = line_plot
 		self.hog_kargs = hog_kargs
 
 		# lazy
@@ -212,6 +214,7 @@ class ParalogIndexer:
 			branches = sorted(self._branch_pairs)
 		self._pi_branches = branches
 		self._pi_rows = []  # (block_id, N, pi_vector) for heatmap
+		self._branch_raw_signal = defaultdict(int)  # raw paralog count per branch (all blocks, even weak)
 
 		for rc in XCollinearity(self.self_synteny, gff=self.gff):
 			if rc.N < self.min_n:
@@ -233,6 +236,7 @@ class ParalogIndexer:
 				pi, n_paralog = self._compute_pi(block_pairs,
 												 self._branch_pairs.get(branch, set()))
 				pi_vector.append(pi)
+				self._branch_raw_signal[branch] += n_paralog
 				if pi > best_pi:
 					best_pi = pi
 					best_nparalog = n_paralog
@@ -320,6 +324,14 @@ class ParalogIndexer:
 		fig, ax = plt.subplots(figsize=(min(7, max(4, 0.02 * M.shape[0])),
 										min(7, max(3, 0.3 * len(branches)))))
 		cmap = plt.get_cmap('YlOrRd')
+		# with line plot: 1x2 gridspec (heatmap | line_plot), share y
+		if self.line_plot:
+			from matplotlib import gridspec
+			gs = gridspec.GridSpec(1, 2, width_ratios=[6, 2], wspace=0.05)
+			ax = fig.add_subplot(gs[0, 0])
+			ax_line = fig.add_subplot(gs[0, 1], sharey=ax)
+		else:
+			ax_line = None
 		# transposed: one row per branch, segments = blocks
 		for i, branch_vec in enumerate(M.T):
 			colors = [cmap(v) for v in branch_vec]
@@ -353,6 +365,19 @@ class ParalogIndexer:
 								 fill=False, edgecolor='0.5', lw=0.6,
 								 linestyle=':', zorder=10)
 				ax.add_patch(rect)
+		# optional: line plot on the right showing raw and assigned paralog signal per branch
+		if ax_line is not None:
+			raw_sig = [self._branch_raw_signal.get(b, 0) for b in branches]
+			asgn_sig = [sum(it[2] for it in assigned.get(b, [])) if b in assigned else 0
+						for b in branches]
+			ax_line.plot(raw_sig, range(len(branches)), 'b-', lw=1.2, alpha=0.8,
+						 label='Raw paralog pairs')
+			ax_line.plot(asgn_sig, range(len(branches)), 'orange', lw=1.2, alpha=0.8,
+						 label='Assigned gene pairs')
+			ax_line.set_xlabel('Number of gene pairs', fontsize=9)
+			ax_line.tick_params(axis='y', labelleft=False)
+			ax_line.set_xticks([min(raw_sig + asgn_sig), max(raw_sig + asgn_sig)])
+			ax_line.legend(fontsize=7, loc='lower right')
 		import matplotlib as mpl
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),
 										   cmap=cmap),
@@ -380,14 +405,15 @@ class ParalogIndexer:
 
 		with open(fpath, 'w') as fout:
 			fout.write('#branch	species	paralog_pairs	syntenic_blocks	'
-					   'syntenic_gene_pairs	syntenic_paralog_pairs	'
-					   'mean_PI	weighted_PI\n')
+								   'syntenic_gene_pairs	syntenic_paralog_pairs	'
+								   'raw_paralog_pairs	mean_PI	weighted_PI\n')
 			for (branch, sp), (blocks, gp, pp, sum_pi) in sorted(stats.items()):
 				mean_pi = sum_pi / blocks if blocks else 0.0
 				n_paralogs = self._branch_sp_counts.get((branch, sp), 0)
+				raw = self._branch_raw_signal.get(branch, 0)
 				wpi = pp / gp if gp else 0.0
-				fout.write('{}	{}	{}	{}	{}	{}	{:.4f}	{:.4f}\n'.format(
-					branch, sp, n_paralogs, blocks, gp, pp, mean_pi, wpi))
+				fout.write('{}	{}	{}	{}	{}	{}	{}	{:.4f}	{:.4f}\n'.format(
+											branch, sp, n_paralogs, blocks, gp, pp, raw, mean_pi, wpi))
 		logger.info('Stats written to {}'.format(fpath))
 		return stats
 

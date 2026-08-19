@@ -201,6 +201,9 @@ def args_paralog(parser):
 	g_out.add_argument('--box-branch', action='store_true', default=False,
 					   dest='box_branch',
 					   help='Draw grey dashed rectangles around blocks assigned to each branch in the heatmap')
+	g_out.add_argument('--line-plot', action='store_true', default=False,
+					   dest='line_plot',
+					   help='Add a line plot on the right of the heatmap showing raw and assigned paralog signal per branch')
 
 def func_paralog(**kargs):
 	from .paralog import xmain as paralog_main

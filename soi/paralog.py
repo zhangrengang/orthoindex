@@ -351,7 +351,7 @@ class ParalogIndexer:
 		ax.invert_yaxis()  # branches top-down (first branch at top)
 		ax.set_yticks(range(len(branches)))
 		tick_fs = max(6, min(12, 240 // max(len(branches), 1)))
-		ax.set_ylabel('Branch', fontsize=15)
+		ax.set_ylabel('Branch', fontsize=14)
 		if ax_line is not None:
 			ax.set_yticklabels([])
 			ax.tick_params(axis='y', left=False, labelleft=False)
@@ -363,7 +363,7 @@ class ParalogIndexer:
 			ax.set_yticklabels(branches, fontsize=tick_fs)
 			ax.yaxis.tick_right()  # branch names on the right
 		ax.set_xticks([])
-		ax.set_xlabel('Synteny', fontsize=15)
+		ax.set_xlabel('Synteny', fontsize=14)
 		# optional: grey dashed rectangles around blocks assigned to each branch
 		if self.box_branch:
 			from collections import defaultdict
@@ -397,7 +397,7 @@ class ParalogIndexer:
 			ax_line.xaxis.set_minor_locator(AutoMinorLocator())
 			ax_leg.axis('off')
 			lg = ax_leg.legend(ax_line.get_lines(), ['Raw paralog pairs', 'Assigned gene pairs'],
-							 fontsize=7, loc='center', ncol=1)
+							 fontsize=8, loc='center', ncol=1)
 		import matplotlib as mpl
 		fig.tight_layout()
 		fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(0, 1),

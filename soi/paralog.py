@@ -358,7 +358,6 @@ class ParalogIndexer:
 			ax_line.set_yticks(range(len(branches)))
 			ax_line.set_yticklabels(branches, fontsize=tick_fs)
 			ax_line.yaxis.tick_right()  # branch names on the far right
-			ax_line.invert_yaxis()  # match heatmap direction
 		else:
 			ax.set_yticklabels(branches, fontsize=tick_fs)
 			ax.yaxis.tick_right()  # branch names on the right

@@ -88,6 +88,8 @@ class HOG:
 		prefix = 'hog'
 		self.all_hogs = {}
 		self.all_genes = []
+		n_drop_no_cross = 0
+		n_no_split = 0
 		for og in OrthoMCLGroup(self.ogfile):
 			og_genes = og.genes
 			self.all_genes  += og_genes
@@ -121,8 +123,10 @@ class HOG:
 					crosses = all(subset_species & cs for cs in child_sps)
 					if not crosses:
 						if self.drop_no_cross:
+							n_drop_no_cross += 1
 							continue
 						do_split = False
+						n_no_split += 1
 
 				if do_split:
 					hog_subgraph = subgraph.subgraph(subset_genes)
@@ -191,6 +195,10 @@ class HOG:
 				logger.debug(f"Dropped {n_dropped} orphan leaf HOGs without parent "
 							 f"(SOG {og_id})")
 		logger.info(f"Processed {len(self.all_hogs)} HOGs")
+		if n_drop_no_cross:
+			logger.info(f"Dropped {n_drop_no_cross} gene sets that do not cross all child branches (--drop-no-cross)")
+		if n_no_split:
+			logger.info(f"Kept {n_no_split} gene sets as single HOGs — do not cross all child branches (--cross-speciation)")
 		logger.info("All HOGs with hierarchy built successfully!")
 		
 		if write_tsv:

@@ -100,10 +100,10 @@ def _add_shared_hog_args(parser, og_required=True, s_required=True,
 						dest='paralog',
 						help=argparse.SUPPRESS) #'Include paralogs in `-s` input. Do NOT '
 							 #'enable if the input paralogs is not terminal inparalogs')
-	target.add_argument('--min-child-species', type=int, default=2,
+	target.add_argument('--min-child-species', type=int, default=1,
 						dest='min_child_species', metavar='INT',
 						help=argparse.SUPPRESS)  # 'Minimum number of species in a child HOG for it to be retained [default=%(default)s]'
-	target.add_argument('--cross-speciation', action='store_true', default=True,
+	target.add_argument('--cross-speciation', action='store_true', default=False,
 						dest='cross_speciation',
 						help=argparse.SUPPRESS)  # 'Merge child HOGs whose genes do not span all child branches of this node'
 	target.add_argument('--drop-no-cross', action='store_true', default=False,

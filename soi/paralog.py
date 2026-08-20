@@ -44,6 +44,7 @@ class Paralog:
 			logger.info('Loaded {} paralog pairs from {}'.format(count, inparalog))
 			return {b: frozenset(ps) for b, ps in branch_pairs.items()}, root
 
+		self.kargs.update(min_child_species=2, cross_speciation=True, drop_no_cross=True)
 		hog = HOG(ogfile=self.ogfile, orthfiles=self.orthfiles,
 				  sptreefile=self.sptreefile, **self.kargs)
 		if hog_tsv:

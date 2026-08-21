@@ -786,7 +786,7 @@ class OrthoFinder:
 	def __init__(self, ResultsDir):
 		self.ResultsDir = ResultsDir
 		self.WorkingDirectory = '{}/WorkingDirectory/'.format(ResultsDir)
-		self.SpeciesTreeAlignment = \
+		self.SpeciesTreeAlignment_path = \
 			'{}/MultipleSequenceAlignments/SpeciesTreeAlignment.fa'.format(
 				ResultsDir)
 		self.SpeciesIDs = '{}/WorkingDirectory/SpeciesIDs.txt'.format(
@@ -803,6 +803,23 @@ class OrthoFinder:
 			ResultsDir)
 		self.SequenceIDs = '{}/WorkingDirectory/SequenceIDs.txt'.format(
 			ResultsDir)
+
+	@property
+	def SpeciesTreeAlignment(self):
+		msa = self.SpeciesTreeAlignment_path
+		if os.path.exists(msa):
+			return msa
+		# v3: no SpeciesTreeAlignment.fa; concatenate from Orthogroups_for_concatenated_alignment.txt
+		og_file = '{}/Species_Tree/Orthogroups_for_concatenated_alignment.txt'.format(
+			self.ResultsDir)
+		if not os.path.exists(og_file):
+			return msa  # will raise FileNotFoundError downstream
+		aln_dir = '{}/MultipleSequenceAlignments/'.format(self.ResultsDir)
+		og_ids = [l.strip() for l in open(og_file) if l.strip()]
+		aln_files = ['{}{}.fa'.format(aln_dir, og) for og in og_ids]
+		with open(msa, 'w') as out:
+			catAln(aln_files, out)
+		return msa
 
 	@property
 	def orthogroups(self):
@@ -2071,8 +2088,8 @@ def gene_format_common(gene):
 		sp, g = None, gene
 		return (sp, g)
 	sp, g = gene.split('|', 1)
-	sp1 = sp[:len(sp)/2]
-	sp2 = sp[len(sp)/2+1:]
+	sp1 = sp[:len(sp)//2]
+	sp2 = sp[len(sp)//2+1:]
 	if sp1 == sp2:
 		sp = sp1
 		g = sp + '|' + g

@@ -16,7 +16,8 @@ def xmain(**kargs):
 class HOG:
 	def __init__(self, ogfile=None, orthfiles=None, sptreefile=None, outpre = "HOGs",
 		  paralog=False, max_copies=5, out_stats=False, bar_plot=False, tree_plot=False, 
-			min_child_species=1, cross_speciation=False, drop_no_cross=False, **kargs):
+			min_child_species=1, cross_speciation=False, drop_no_cross=False,
+			enable_root_paralog=False, **kargs):
 		self.ogfile = ogfile
 		self.orthfiles = orthfiles
 		self.sptreefile = sptreefile
@@ -26,6 +27,7 @@ class HOG:
 		self.min_child_species = min_child_species
 		self.cross_speciation = cross_speciation
 		self.drop_no_cross = drop_no_cross
+		self.enable_root_paralog = enable_root_paralog
 		self.out_stats = outpre + '.stats.tsv' if out_stats else None
 		self.bar_plot = outpre + '.bar' if bar_plot else None
 		self.tree_plot = outpre + '.tree' if tree_plot else None
@@ -283,7 +285,7 @@ class HOG:
 				continue
 			pid = hog["parent"]
 			if not pid or pid == "Root":
-				if not getattr(self, '_enable_root_paralog', False):
+				if not self.enable_root_paralog:
 					continue
 				# Root-level sibling HOGs: group by og_id as the "parent" key
 				pid = hog["og_id"]

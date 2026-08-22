@@ -807,11 +807,11 @@ class OrthoFinder:
 	@property
 	def SpeciesTreeAlignment(self):
 		msa = self.SpeciesTreeAlignment_path
-		if os.path.exists(msa):
+		if os.path.exists(msa):	# v2
 			return msa
 		# v3: no SpeciesTreeAlignment.fa; concatenate from Orthogroups_for_concatenated_alignment.txt
 		og_file = '{}/Species_Tree/Orthogroups_for_concatenated_alignment.txt'.format(
-			self.ResultsDir)
+			self.ResultsDir)	# v3
 		if not os.path.exists(og_file):
 			return msa  # will raise FileNotFoundError downstream
 		aln_dir = '{}/MultipleSequenceAlignments/'.format(self.ResultsDir)

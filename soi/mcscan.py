@@ -1344,7 +1344,7 @@ All chromosomes or scaffolds will be used.'.format(chrLst, e))
 			except KeyError as e:
 				continue
 			with open(outctl, 'w') as f:
-				f.write('2000\n2000\n{}\n{}\n'.format(chrs1, chrs2))
+				f.write('2000\n2000\n{}\n{}\n'.format(chrs2, chrs1))
 		# close files
 		seen = set()
 		for key, handles in list(d_handle.items()):
